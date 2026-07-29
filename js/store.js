@@ -17,7 +17,7 @@ if (typeof supabase !== 'undefined' && SUPABASE_URL && !SUPABASE_URL.includes('T
 }
 
 (function () {
-  const STORAGE_KEY = 'mystocki_app_real_state_v9';
+  const STORAGE_KEY = 'mystocki_app_real_state_v10';
 
   const SUPER_ADMIN_PROFILE = {
     id: 'usr_superadmin_01',
@@ -55,7 +55,7 @@ if (typeof supabase !== 'undefined' && SUPABASE_URL && !SUPABASE_URL.includes('T
   function loadLocal() {
     try {
       // Clear legacy storage keys
-      for (let i = 1; i <= 8; i++) {
+      for (let i = 1; i <= 9; i++) {
         localStorage.removeItem('mystocki_app_real_state_v' + i);
       }
 
@@ -84,7 +84,7 @@ if (typeof supabase !== 'undefined' && SUPABASE_URL && !SUPABASE_URL.includes('T
   }
 
   // ==========================================================================
-  // REAL-TIME GLOBAL CLOUD PERSISTENCE ENGINE
+  // REAL-TIME GLOBAL CLOUD PERSISTENCE ENGINE (BIDIRECTIONAL SYNC)
   // ==========================================================================
 
   async function syncCloudDB() {
@@ -96,16 +96,45 @@ if (typeof supabase !== 'undefined' && SUPABASE_URL && !SUPABASE_URL.includes('T
         cloudData = await resGet.json();
       }
 
-      // Merge local sellers with Cloud sellers (strictly filtering out dummy users)
       const sellerMap = new Map();
 
+      // First load cloudData sellers into map
       (cloudData.sellers || []).forEach(s => {
-        if (!isDummyUser(s)) sellerMap.set(s.id || s.email, s);
+        if (!isDummyUser(s)) {
+          const key = (s.id || s.email).toLowerCase();
+          sellerMap.set(key, s);
+        }
       });
 
+      // Override / merge with local state sellers (newest local edits win + bonus days merge)
       (state.sellers || []).forEach(s => {
-        if (!isDummyUser(s)) sellerMap.set(s.id || s.email, s);
+        if (!isDummyUser(s)) {
+          const key = (s.id || s.email).toLowerCase();
+          const cloudSeller = sellerMap.get(key) || {};
+          
+          const merged = {
+            ...cloudSeller,
+            ...s,
+            trial_days_added: Math.max(s.trial_days_added || 0, cloudSeller.trial_days_added || 0),
+            is_subscribed: s.is_subscribed || cloudSeller.is_subscribed || false,
+            discount_applied: s.discount_applied || cloudSeller.discount_applied || false
+          };
+          sellerMap.set(key, merged);
+        }
       });
+
+      // Update state.currentUser if logged in
+      if (state.currentUser) {
+        const userKey = (state.currentUser.id || state.currentUser.email).toLowerCase();
+        const syncedUser = sellerMap.get(userKey);
+        if (syncedUser) {
+          state.currentUser = {
+            ...state.currentUser,
+            ...syncedUser
+          };
+          sellerMap.set(userKey, state.currentUser);
+        }
+      }
 
       const mergedSellers = Array.from(sellerMap.values());
       if (!mergedSellers.find(s => s.email.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase())) {
