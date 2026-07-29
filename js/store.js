@@ -17,7 +17,7 @@ if (typeof supabase !== 'undefined' && SUPABASE_URL && !SUPABASE_URL.includes('T
 }
 
 (function () {
-  const STORAGE_KEY = 'mystocki_app_real_state_v12';
+  const STORAGE_KEY = 'mystocki_app_real_state_v14';
 
   const SUPER_ADMIN_PROFILE = {
     id: 'usr_superadmin_01',
@@ -38,6 +38,7 @@ if (typeof supabase !== 'undefined' && SUPABASE_URL && !SUPABASE_URL.includes('T
     currentUser: null,
     sellers: [SUPER_ADMIN_PROFILE],
     inventory: [],
+    deleted_inventory_ids: [],
     alerts: [],
     messages: []
   };
@@ -62,7 +63,7 @@ if (typeof supabase !== 'undefined' && SUPABASE_URL && !SUPABASE_URL.includes('T
   function loadLocal() {
     try {
       // Clear legacy storage keys
-      for (let i = 1; i <= 11; i++) {
+      for (let i = 1; i <= 13; i++) {
         localStorage.removeItem('mystocki_app_real_state_v' + i);
       }
 
@@ -74,6 +75,9 @@ if (typeof supabase !== 'undefined' && SUPABASE_URL && !SUPABASE_URL.includes('T
           if (!parsed.sellers.find(s => s.email.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase())) {
             parsed.sellers.unshift(SUPER_ADMIN_PROFILE);
           }
+        }
+        if (!parsed.deleted_inventory_ids) {
+          parsed.deleted_inventory_ids = [];
         }
         return parsed;
       }
@@ -91,7 +95,7 @@ if (typeof supabase !== 'undefined' && SUPABASE_URL && !SUPABASE_URL.includes('T
   }
 
   // ==========================================================================
-  // REAL-TIME GLOBAL CLOUD PERSISTENCE ENGINE (BIDIRECTIONAL SYNC + DELETION FIX)
+  // REAL-TIME GLOBAL CLOUD PERSISTENCE ENGINE (BIDIRECTIONAL SYNC + HARD DELETION)
   // ==========================================================================
 
   async function syncCloudDB() {
@@ -150,23 +154,30 @@ if (typeof supabase !== 'undefined' && SUPABASE_URL && !SUPABASE_URL.includes('T
         mergedSellers.unshift(SUPER_ADMIN_PROFILE);
       }
 
-      // Smart Inventory Merge (local state is authoritative for currentUser items so deletions persist)
+      // Hard Inventory Merge & Deletion Filter
+      if (!state.deleted_inventory_ids) state.deleted_inventory_ids = [];
+      const deletedSet = new Set(state.deleted_inventory_ids);
+
       const invMap = new Map();
       const currentUserId = state.currentUser ? state.currentUser.id : null;
       const currentUserEmail = state.currentUser ? (state.currentUser.email || '').toLowerCase() : null;
 
-      // 1. Add cloud items EXCEPT those owned by currentUser (local state is authoritative for currentUser)
+      // 1. Add cloud items EXCEPT those deleted or owned by currentUser
       (cloudData.inventory || []).forEach(i => {
-        const isOwner = (currentUserId && i.seller_id === currentUserId) ||
+        if (deletedSet.has(i.id)) return; // Strictly ignore deleted items
+
+        const isOwner = (currentUserId && (i.seller_id === currentUserId || i.seller_id === state.currentUser?.supabase_id)) ||
                         (currentUserEmail && i.seller_email && i.seller_email.toLowerCase() === currentUserEmail);
         if (!isOwner) {
           invMap.set(i.id, i);
         }
       });
 
-      // 2. Add all local inventory items (authoritative for currentUser + cached items)
+      // 2. Add all local inventory items (authoritative for currentUser)
       (state.inventory || []).forEach(i => {
-        invMap.set(i.id, i);
+        if (!deletedSet.has(i.id)) {
+          invMap.set(i.id, i);
+        }
       });
 
       const mergedInventory = Array.from(invMap.values());
@@ -394,6 +405,10 @@ if (typeof supabase !== 'undefined' && SUPABASE_URL && !SUPABASE_URL.includes('T
   }
 
   async function deleteInventoryItem(invId) {
+    if (!state.deleted_inventory_ids) state.deleted_inventory_ids = [];
+    if (!state.deleted_inventory_ids.includes(invId)) {
+      state.deleted_inventory_ids.push(invId);
+    }
     state.inventory = state.inventory.filter(i => i.id !== invId);
     saveLocal();
     await syncCloudDB();
