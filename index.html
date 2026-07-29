@@ -242,7 +242,8 @@
           <div style="border-top: 1px solid var(--border-color); padding-top: 14px; margin-top: 14px;">
             <div style="font-size: 14px; font-weight: 700; margin-bottom: 6px;">Suscripción Mercado Pago</div>
             <div style="font-size: 24px; font-weight: 800; color: var(--primary); margin-bottom: 12px;">$49 MXN <span style="font-size: 14px; font-weight: 500; color: var(--text-muted);">/ mes</span></div>
-            <button class="btn-primary" onclick="openSubscribeModal()">💳 Pagar $49 MXN con Mercado Pago</button>
+            <button class="btn-primary" onclick="openSubscribeModal()" style="margin-bottom: 10px;">💳 Pagar $49 MXN con Mercado Pago</button>
+            <button class="btn-outline" style="width: 100%; font-size: 12px; font-weight: 700; color: var(--primary); border-color: rgba(79, 70, 229, 0.3);" onclick="openAdminDashboard()">👑 Panel SuperAdministrador</button>
           </div>
         </div>
       </section>
@@ -281,7 +282,24 @@
 
   <!-- MODALS -->
 
-  <!-- Modal 0: LANDING PAGE MODAL - "¿CÓMO FUNCIONA STOCKI?" -->
+  <!-- Modal 0: SUPERADMIN DASHBOARD MODAL -->
+  <div id="adminModal" class="modal-overlay" onclick="closeModalOnOverlay(event, 'adminModal')">
+    <div class="modal-card" style="max-height: 92vh; max-width: 480px;">
+      <div class="modal-handle"></div>
+      <div class="modal-header">
+        <h3 style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 20px;">👑</span> Panel SuperAdministrador
+        </h3>
+        <button class="modal-close" onclick="closeModal('adminModal')">✕</button>
+      </div>
+
+      <div id="adminContent">
+        <!-- Admin Metrics & User Management Table rendered dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 0.5: LANDING PAGE MODAL - "¿CÓMO FUNCIONA STOCKI?" -->
   <div id="howItWorksModal" class="modal-overlay" onclick="closeModalOnOverlay(event, 'howItWorksModal')">
     <div class="modal-card" style="max-height: 90vh;">
       <div class="modal-handle"></div>
@@ -299,8 +317,6 @@
         </div>
 
         <div style="display: flex; flex-direction: column; gap: 14px;">
-          
-          <!-- Pillar 1 -->
           <div style="display: flex; gap: 12px; align-items: flex-start; background: #FAFAFA; border: 1px solid var(--border-color); padding: 12px; border-radius: var(--radius-md);">
             <div style="background: var(--primary-light); color: var(--primary); font-size: 22px; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800;">🏪</div>
             <div style="flex: 1;">
@@ -309,7 +325,6 @@
             </div>
           </div>
 
-          <!-- Pillar 2 -->
           <div style="display: flex; gap: 12px; align-items: flex-start; background: #FAFAFA; border: 1px solid var(--border-color); padding: 12px; border-radius: var(--radius-md);">
             <div style="background: var(--secondary-light); color: var(--secondary); font-size: 22px; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800;">🔄</div>
             <div style="flex: 1;">
@@ -318,7 +333,6 @@
             </div>
           </div>
 
-          <!-- Pillar 3 -->
           <div style="display: flex; gap: 12px; align-items: flex-start; background: #FAFAFA; border: 1px solid var(--border-color); padding: 12px; border-radius: var(--radius-md);">
             <div style="background: var(--warning-light); color: var(--warning); font-size: 22px; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800;">📢</div>
             <div style="flex: 1;">
@@ -327,7 +341,6 @@
             </div>
           </div>
 
-          <!-- Pillar 4 -->
           <div style="display: flex; gap: 12px; align-items: flex-start; background: #FAFAFA; border: 1px solid var(--border-color); padding: 12px; border-radius: var(--radius-md);">
             <div style="background: var(--accent-light); color: var(--accent); font-size: 22px; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800;">🔥</div>
             <div style="flex: 1;">
@@ -335,7 +348,6 @@
               <p style="font-size: 12px; color: var(--text-muted); line-height: 1.4;">¿Tienes inventario atascado en tu casa? Publica tus artículos en Remate con descuento para recuperar tu inversión de forma acelerada.</p>
             </div>
           </div>
-
         </div>
 
         <div style="margin-top: 18px;">
@@ -374,13 +386,11 @@
 
       <!-- Register Form with Mandatory Security Fields & CP Instant Lookup -->
       <form id="registerForm" style="display: none;" onsubmit="handleRealRegister(event)">
-        
         <div class="form-group">
           <label class="form-label">Nombre Completo *</label>
           <input type="text" id="regName" class="input-control" placeholder="Ej. Ana Luisa Martínez" required>
         </div>
 
-        <!-- MANDATORY ANTI-ABUSE BETTERWARE ASSOCIATE CODE -->
         <div class="form-group" style="background: #EEF2FF; padding: 10px; border-radius: var(--radius-sm); border: 1px solid #C7D2FE;">
           <label class="form-label" style="color: var(--primary);">🔒 Código de Asociada / Distribuidora Betterware *</label>
           <input type="text" id="regAssociateCode" class="input-control" placeholder="Ej. 12345678" required style="font-weight: 800; letter-spacing: 0.05em;">
@@ -401,7 +411,6 @@
           </div>
         </div>
 
-        <!-- CÓDIGO POSTAL INSTANT AUTO-LOOKUP SECTION -->
         <div style="background: #F8FAFC; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 14px;">
           <div style="font-size: 11px; font-weight: 800; color: var(--primary); margin-bottom: 6px; text-transform: uppercase;">📍 Ubicación Precisa por Código Postal (CP) *</div>
           
@@ -425,7 +434,7 @@
             <div class="form-group" style="margin-bottom: 0;">
               <label class="form-label">Selecciona tu Colonia *</label>
               <select id="regColoniaSelect" class="input-control" required style="font-weight: 600;">
-                <!-- Filled dynamically by instant CP lookup -->
+                <!-- Filled dynamically -->
               </select>
             </div>
           </div>
@@ -461,7 +470,6 @@
         <p style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Pago seguro integrado directamente en la app.</p>
       </div>
 
-      <!-- Embedded Native Mercado Pago Form Container -->
       <div id="mpEmbeddedFormContainer" style="background: #FAFAFA; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px; margin-bottom: 12px;">
         <form id="mpCardForm" onsubmit="handleNativeMercadoPagoPayment(event)">
           <div class="form-group">
@@ -551,7 +559,7 @@
     </div>
   </div>
 
-  <!-- Modal 6: Native Confirmation Modal (Replaces browser confirm()) -->
+  <!-- Modal 6: Native Confirmation Modal -->
   <div id="confirmModal" class="modal-overlay" onclick="closeModalOnOverlay(event, 'confirmModal')">
     <div class="modal-card">
       <div class="modal-handle"></div>

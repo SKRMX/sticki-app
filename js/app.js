@@ -12,6 +12,165 @@ let currentCategoryFilter = 'all';
 let currentFeedMode = 'busco';
 
 // ==========================================================================
+// 👑 SUPER ADMIN DASHBOARD CONTROLLER & METRICS ENGINE
+// ==========================================================================
+
+function openAdminDashboard() {
+  const modal = document.getElementById('adminModal');
+  const container = document.getElementById('adminContent');
+  if (!container) return;
+
+  renderAdminDashboardContent();
+  modal?.classList.add('active');
+}
+
+function renderAdminDashboardContent() {
+  const container = document.getElementById('adminContent');
+  if (!container) return;
+
+  const state = StockiStore.getState();
+  const sellers = state.sellers || [];
+  const inventory = state.inventory || [];
+
+  const totalUsers = sellers.length;
+  const subscribedUsers = sellers.filter(s => s.is_subscribed).length;
+  const totalProducts = inventory.length;
+  const totalRevenue = subscribedUsers * 49;
+
+  container.innerHTML = `
+    <!-- Top Metrics Overview Grid -->
+    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px;">
+      <div style="background: linear-gradient(135deg, #1E1B4B 0%, #312E81 100%); color: white; padding: 14px; border-radius: var(--radius-md);">
+        <div style="font-size: 11px; color: #C7D2FE; text-transform: uppercase; font-weight: 700;">Total Usuarias</div>
+        <div style="font-size: 24px; font-weight: 800; color: white;">${totalUsers}</div>
+        <div style="font-size: 10px; color: #94A3B8;">Vendedoras registradas</div>
+      </div>
+
+      <div style="background: linear-gradient(135deg, #065F46 0%, #047857 100%); color: white; padding: 14px; border-radius: var(--radius-md);">
+        <div style="font-size: 11px; color: #A7F3D0; text-transform: uppercase; font-weight: 700;">Pagaron Mensualidad</div>
+        <div style="font-size: 24px; font-weight: 800; color: white;">${subscribedUsers}</div>
+        <div style="font-size: 10px; color: #D1FAE5;">$49/mes Mercado Pago</div>
+      </div>
+
+      <div style="background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%); color: white; padding: 14px; border-radius: var(--radius-md);">
+        <div style="font-size: 11px; color: #BAE6FD; text-transform: uppercase; font-weight: 700;">Ingreso Mensual</div>
+        <div style="font-size: 24px; font-weight: 800; color: white;">$${totalRevenue} MXN</div>
+        <div style="font-size: 10px; color: #E0F2FE;">Cobros recurrentes</div>
+      </div>
+
+      <div style="background: linear-gradient(135deg, #4338CA 0%, #3730A3 100%); color: white; padding: 14px; border-radius: var(--radius-md);">
+        <div style="font-size: 11px; color: #C7D2FE; text-transform: uppercase; font-weight: 700;">Artículos en Stock</div>
+        <div style="font-size: 24px; font-weight: 800; color: white;">${totalProducts}</div>
+        <div style="font-size: 10px; color: #E0E7FF;">Inventario publicado</div>
+      </div>
+    </div>
+
+    <!-- Search Users -->
+    <div class="form-group" style="margin-bottom: 12px;">
+      <input type="text" id="adminUserSearch" class="input-control" placeholder="🔍 Buscar por nombre, correo o código..." oninput="filterAdminUserTable(this.value)">
+    </div>
+
+    <!-- Users Table List -->
+    <h4 style="font-size: 14px; font-weight: 800; margin-bottom: 10px;">Gestión de Cuentas de Vendedoras:</h4>
+    <div id="adminUserList" style="display: flex; flex-direction: column; gap: 10px; max-height: 380px; overflow-y: auto;">
+      ${sellers.length === 0 ? '<p style="font-size: 12px; color: var(--text-muted); text-align: center; padding: 20px;">Aún no hay vendedoras registradas en la plataforma.</p>' : ''}
+      ${sellers.map(s => renderAdminUserRow(s)).join('')}
+    </div>
+  `;
+}
+
+function renderAdminUserRow(s) {
+  const isSub = s.is_subscribed;
+  const hasDiscount = s.discount_applied;
+
+  return `
+    <div class="card" style="padding: 12px; margin-bottom: 0; background: #FFFFFF; border: 1px solid var(--border-color);" id="admin_row_${s.id}">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
+        <div>
+          <div style="font-size: 14px; font-weight: 800; color: var(--text-main);">${s.full_name || s.name || 'Vendedora'}</div>
+          <div style="font-size: 11px; color: var(--primary); font-weight: 700;">🆔 Código: ${s.associate_code || 'N/A'} • ${s.role || 'Asociada'}</div>
+          <div style="font-size: 11px; color: var(--text-muted);">📧 ${s.email || 'Sin correo'} • 📱 ${s.phone || 'Sin tel'}</div>
+          <div style="font-size: 11px; color: var(--text-muted);">📍 ${s.colonia || 'México'}</div>
+        </div>
+        <div>
+          ${isSub ? '<span class="pill pill-accent">⭐ PAGADO $49</span>' : '<span class="pill pill-warning">⏳ PRUEBA GRATIS</span>'}
+          ${hasDiscount ? '<span class="pill pill-primary" style="display: block; margin-top: 4px;">🎟️ 50% DESC</span>' : ''}
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; border-top: 1px dashed var(--border-color); padding-top: 8px; margin-top: 6px;">
+        <button class="btn-secondary" style="font-size: 10px; padding: 6px;" onclick="adminGiftFreeMonth('${s.id}')">🎁 Regalar 1 Mes Gratis</button>
+        <button class="btn-secondary" style="font-size: 10px; padding: 6px;" onclick="adminApplyDiscount('${s.id}')">🎟️ Dar 50% Descuento</button>
+        <button class="btn-outline" style="font-size: 10px; padding: 6px;" onclick="adminToggleSub('${s.id}')">${isSub ? '❌ Cancelar Pago' : '💳 Activar Pago'}</button>
+        <button class="btn-outline" style="font-size: 10px; padding: 6px; color: var(--danger); border-color: rgba(239, 68, 68, 0.4);" onclick="adminDeleteUser('${s.id}')">🗑️ Borrar Usuario</button>
+      </div>
+    </div>
+  `;
+}
+
+function filterAdminUserTable(query) {
+  const q = query.toLowerCase().trim();
+  const state = StockiStore.getState();
+  const filtered = state.sellers.filter(s => 
+    (s.full_name || '').toLowerCase().includes(q) ||
+    (s.email || '').toLowerCase().includes(q) ||
+    (s.associate_code || '').toLowerCase().includes(q)
+  );
+
+  const container = document.getElementById('adminUserList');
+  if (container) {
+    container.innerHTML = filtered.map(s => renderAdminUserRow(s)).join('');
+  }
+}
+
+function adminGiftFreeMonth(userId) {
+  const state = StockiStore.getState();
+  const seller = state.sellers.find(s => s.id === userId);
+  if (!seller) return;
+
+  seller.trial_days_added = (seller.trial_days_added || 0) + 30;
+  StockiStore.saveLocal();
+  showToast(`🎁 ¡Se regalaron +30 días gratis a ${seller.full_name}!`, 'success');
+  renderAdminDashboardContent();
+}
+
+function adminApplyDiscount(userId) {
+  const state = StockiStore.getState();
+  const seller = state.sellers.find(s => s.id === userId);
+  if (!seller) return;
+
+  seller.discount_applied = !seller.discount_applied;
+  StockiStore.saveLocal();
+  showToast(`🎟️ Descuento del 50% para el siguiente mes ${seller.discount_applied ? 'aplicado' : 'removido'} a ${seller.full_name}.`, 'info');
+  renderAdminDashboardContent();
+}
+
+function adminToggleSub(userId) {
+  const state = StockiStore.getState();
+  const seller = state.sellers.find(s => s.id === userId);
+  if (!seller) return;
+
+  seller.is_subscribed = !seller.is_subscribed;
+  StockiStore.saveLocal();
+  showToast(`💳 Suscripción de ${seller.full_name} ${seller.is_subscribed ? 'activada' : 'desactivada'}.`, 'success');
+  renderAdminDashboardContent();
+}
+
+function adminDeleteUser(userId) {
+  showConfirm('Eliminar Usuario', '¿Estás seguro de que deseas eliminar permanentemente a esta vendedora y su tienda?', async () => {
+    const state = StockiStore.getState();
+    state.sellers = state.sellers.filter(s => s.id !== userId);
+    state.inventory = state.inventory.filter(i => i.seller_id !== userId);
+    StockiStore.saveLocal();
+
+    showToast('Usuario y tienda eliminados del sistema.', 'info');
+    renderAdminDashboardContent();
+    renderMarketplace();
+  });
+}
+
+// ==========================================================================
 // 💡 HOW IT WORKS LANDING MODAL CONTROLLER
 // ==========================================================================
 
