@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Stocki - Red Social de Inventario Betterware</title>
+  <meta name="description" content="Marketplace y red social colaborativa para vendedoras de Betterware. Traspasos de stock, tiendas digitales por perfil y entregas locales inmediatas.">
+  
+  <!-- CSS Stylesheets -->
+  <link rel="stylesheet" href="css/styles.css">
+  
+  <!-- Supabase JS Client & Mercado Pago SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://sdk.mercadopago.com/js/v2"></script>
+</head>
+<body>
+
+  <!-- Mobile App Outer Container -->
+  <div class="app-container">
+    
+    <!-- Top Header -->
+    <header class="top-header">
+      <a href="#" class="brand-logo" onclick="switchTab('tab-search'); return false;">
+        <div class="brand-icon">S</div>
+        <div>
+          <div class="brand-name">Stocki</div>
+          <span class="brand-badge">Betterware</span>
+        </div>
+      </a>
+      
+      <!-- User Auth State or Account Button -->
+      <div id="authHeaderWidget" style="display: flex; align-items: center; gap: 8px;">
+        <!-- Injected dynamically by app.js -->
+      </div>
+    </header>
+
+    <!-- Trial Banner (20 Days Free) -->
+    <div id="trialBanner" class="trial-banner">
+      <div class="trial-info">
+        <span class="trial-tag">PRUEBA GRATIS</span>
+        <span id="trialDaysText">Quedan 20 días gratis</span>
+      </div>
+      <button class="btn-subscribe-pill" onclick="openSubscribeModal()">💳 $49/mes Mercado Pago</button>
+    </div>
+
+    <!-- Main Dynamic Content Views -->
+    <main class="main-content">
+
+      <!-- TAB 1: INICIO & MARKETPLACE -->
+      <section id="tab-search" class="tab-section active">
+        
+        <!-- Search & Filter Controls -->
+        <div class="card" style="padding: 14px; margin-bottom: 12px;">
+          <div class="form-group" style="margin-bottom: 10px;">
+            <input type="text" id="searchInput" class="input-control" placeholder="🔍 Buscar SKU (ej. 26221) o producto..." oninput="handleSearch()">
+          </div>
+
+          <!-- Distance Filters -->
+          <div class="action-bar">
+            <span class="form-label" style="display: flex; align-items: center; margin: 0 4px 0 0; font-size: 11px;">Radio:</span>
+            <button class="chip-btn active" data-distance="all" onclick="filterDistance(this, 'all')">Todas</button>
+            <button class="chip-btn" data-distance="1" onclick="filterDistance(this, 1)">📍 &lt; 1 km</button>
+            <button class="chip-btn" data-distance="3" onclick="filterDistance(this, 3)">📍 &lt; 3 km</button>
+            <button class="chip-btn" data-distance="5" onclick="filterDistance(this, 5)">📍 &lt; 5 km</button>
+            <button class="chip-btn" data-distance="10" onclick="filterDistance(this, 10)">📍 &lt; 10 km</button>
+          </div>
+
+          <!-- Category Chips -->
+          <div class="action-bar" style="margin-bottom: 0;">
+            <button class="chip-btn active" data-cat="all" onclick="filterCategory(this, 'all')">Todos</button>
+            <button class="chip-btn" data-cat="Cocina" onclick="filterCategory(this, 'Cocina')">Cocina</button>
+            <button class="chip-btn" data-cat="Hogar" onclick="filterCategory(this, 'Hogar')">Hogar</button>
+            <button class="chip-btn" data-cat="Contigo" onclick="filterCategory(this, 'Contigo')">Contigo</button>
+            <button class="chip-btn" data-cat="Recamara" onclick="filterCategory(this, 'Recamara')">Recámara</button>
+            <button class="chip-btn" data-cat="Limpieza" onclick="filterCategory(this, 'Limpieza')">Limpieza</button>
+            <button class="chip-btn" data-cat="Baño" onclick="filterCategory(this, 'Baño')">Baño</button>
+            <button class="chip-btn" data-cat="Bienestar" onclick="filterCategory(this, 'Bienestar')">Bienestar</button>
+          </div>
+        </div>
+
+        <!-- Featured Section: Remates & Más Vendidos -->
+        <div id="featuredSection" style="margin-bottom: 16px;">
+          <div style="font-size: 14px; font-weight: 800; color: var(--text-main); margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between;">
+            <span>🔥 Remates del Día (Dinero Rápido)</span>
+            <span style="font-size: 11px; color: var(--primary); font-weight: 700; cursor: pointer;" onclick="switchTab('tab-feed')">Ver todo</span>
+          </div>
+          <div id="rematesCarousel" style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: none;">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+
+        <div id="searchResultsHeader" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 0 4px;">
+          <span style="font-size: 13px; font-weight: 700; color: var(--text-muted);" id="resultCount">Buscando productos disponibles hoy...</span>
+        </div>
+
+        <!-- Product Cards Grid -->
+        <div id="productGrid" class="product-grid">
+          <!-- Rendered dynamically by app.js -->
+        </div>
+      </section>
+
+      <!-- TAB 2: MI TIENDA (INVENTARIO & PERFIL) -->
+      <section id="tab-store" class="tab-section">
+        
+        <!-- Store Header Card -->
+        <div class="profile-header-card">
+          <div class="profile-avatar-wrapper">
+            <div class="profile-avatar-large" id="myProfileInitials">MG</div>
+            <div>
+              <div class="profile-name" id="myProfileName">María Gómez</div>
+              <div class="profile-meta">
+                <span id="myProfileColonia">Col. Del Valle, CDMX</span>
+                <span class="badge-verified">✓ Verificada</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="profile-stats-row">
+            <div>
+              <div class="stat-num" id="statItemCount">2</div>
+              <div class="stat-label">Artículos</div>
+            </div>
+            <div>
+              <div class="stat-num" id="statRating">4.9 ★</div>
+              <div class="stat-label">Valoración</div>
+            </div>
+            <div>
+              <div class="stat-num" id="statTraspasos">28</div>
+              <div class="stat-label">Traspasos</div>
+            </div>
+          </div>
+
+          <div style="margin-top: 12px; display: flex; gap: 8px;">
+            <button class="btn-secondary" style="flex: 1; font-size: 12px;" onclick="copyStoreLink()">🔗 Compartir mi Tienda</button>
+            <button class="btn-outline" style="color: white; border-color: rgba(255,255,255,0.3); font-size: 12px;" onclick="previewMyStore()">👁️ Ver mi Vista Pública</button>
+          </div>
+        </div>
+
+        <!-- Rapid SKU Stock Adder Form -->
+        <div class="card">
+          <div class="card-title">
+            <span>⚡ Carga Rápida por SKU</span>
+            <span class="pill pill-primary">&lt; 5 Segundos</span>
+          </div>
+
+          <form id="addStockForm" onsubmit="handleAddStock(event)">
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px;">
+              <div class="form-group">
+                <label class="form-label">SKU del Producto</label>
+                <input type="text" id="addSkuInput" class="input-control" placeholder="Ej. 26221" required oninput="previewSkuItem(this.value)">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Cantidad</label>
+                <input type="number" id="addQtyInput" class="input-control" value="1" min="1" required>
+              </div>
+            </div>
+
+            <!-- SKU Autofill Preview Box -->
+            <div id="skuPreviewBox" style="display: none; background: #F8FAFC; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 10px; margin-bottom: 12px;">
+              <!-- Preview inserted dynamically -->
+            </div>
+
+            <div class="form-group" style="display: flex; align-items: center; gap: 8px;">
+              <input type="checkbox" id="addRemateCheck" onchange="toggleRematePrice(this.checked)">
+              <label for="addRemateCheck" style="font-size: 13px; font-weight: 600; cursor: pointer;">Publicar como "En Remate" (Descuento Rápido)</label>
+            </div>
+
+            <div id="rematePriceGroup" class="form-group" style="display: none;">
+              <label class="form-label">Precio Especial de Remate ($)</label>
+              <input type="number" id="addRematePrice" class="input-control" placeholder="Ej. 110.00">
+            </div>
+
+            <button type="submit" class="btn-primary">+ Agregar a mi Tienda Digital</button>
+          </form>
+        </div>
+
+        <!-- Current Store Items List -->
+        <div class="card">
+          <div class="card-title">
+            <span>📦 Tu Stock Disponible para Entrega</span>
+          </div>
+          <div id="myInventoryList">
+            <!-- Dynamic inventory list -->
+          </div>
+        </div>
+
+      </section>
+
+      <!-- TAB 3: FEED & ALERTAS -->
+      <section id="tab-feed" class="tab-section">
+        <div class="card" style="padding: 12px; margin-bottom: 14px;">
+          <div style="display: flex; gap: 8px;">
+            <button class="chip-btn active" id="btnFeedAlerts" style="flex: 1; text-align: center;" onclick="switchFeedMode('busco')">📢 Alertas "Busco SKU"</button>
+            <button class="chip-btn" id="btnFeedRemates" style="flex: 1; text-align: center;" onclick="switchFeedMode('remate')">🔥 Feed de Remates</button>
+          </div>
+        </div>
+
+        <button class="btn-primary" style="margin-bottom: 16px;" onclick="openNewAlertModal()">+ Publicar Alerta "Busco SKU"</button>
+
+        <div id="feedList">
+          <!-- Feed items rendered dynamically -->
+        </div>
+      </section>
+
+      <!-- TAB 4: CHAT & TRASPASOS -->
+      <section id="tab-chat" class="tab-section">
+        <div class="card-title" style="margin-bottom: 12px;">
+          <span>💬 Mensajes & Traspasos Activos</span>
+        </div>
+
+        <div id="chatListContainer" class="chat-list">
+          <!-- Rendered dynamically -->
+        </div>
+      </section>
+
+      <!-- TAB 5: SUSCRIPCIÓN & PERFIL -->
+      <section id="tab-profile" class="tab-section">
+        <div class="card">
+          <div class="card-title">
+            <span>💎 Estado de Suscripción</span>
+          </div>
+          
+          <div style="background: linear-gradient(135deg, #EEF2FF 0%, #E0F2FE 100%); padding: 16px; border-radius: var(--radius-md); border: 1px solid #C7D2FE; margin-bottom: 14px;">
+            <div style="font-size: 13px; font-weight: 700; color: var(--primary); margin-bottom: 4px;">PLAN 20 DÍAS PRUEBA GRATIS</div>
+            <div style="font-size: 22px; font-weight: 800; color: var(--text-main);" id="profileTrialCountdown">Quedan 20 días</div>
+            <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Acceso completo a la tienda digital, buscador por SKU y traspasos.</div>
+          </div>
+
+          <div style="border-top: 1px solid var(--border-color); padding-top: 14px; margin-top: 14px;">
+            <div style="font-size: 14px; font-weight: 700; margin-bottom: 6px;">Suscripción Mercado Pago</div>
+            <div style="font-size: 24px; font-weight: 800; color: var(--primary); margin-bottom: 12px;">$49 MXN <span style="font-size: 14px; font-weight: 500; color: var(--text-muted);">/ mes</span></div>
+            <ul style="font-size: 13px; color: var(--text-muted); padding-left: 18px; margin-bottom: 16px;">
+              <li>Mantenimiento de tu Tienda Digital pública</li>
+              <li>Búsquedas ilimitadas de inventario cercano</li>
+              <li>Panel consolidador para Líderes de Red</li>
+              <li>Soporte de pagos con Tarjeta, Débito o OXXO (Mercado Pago)</li>
+            </ul>
+            <button class="btn-primary" onclick="openSubscribeModal()">💳 Pagar $49 MXN con Mercado Pago</button>
+          </div>
+        </div>
+
+        <!-- Leader Team Consolidation View -->
+        <div id="leaderConsolidationPanel" class="card">
+          <div class="card-title">
+            <span>👑 Panel Consolidador de Red (Líder)</span>
+          </div>
+          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">Inventario consolidado de las asociadas de tu grupo.</p>
+          <div style="background: #F8FAFC; border: 1px solid var(--border-color); padding: 12px; border-radius: var(--radius-sm);">
+            <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; margin-bottom: 6px;">
+              <span>Total Stock en Red:</span>
+              <span style="color: var(--primary);">15 artículos</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 700;">
+              <span>Valor Total a Costo Distribuidor:</span>
+              <span style="color: var(--accent);">$3,420.00 MXN</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Bottom Navigation Bar (Mobile Native Look) -->
+    <nav class="bottom-nav">
+      <button class="nav-item active" onclick="switchTab('tab-search')">
+        <svg viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <span>Buscar SKU</span>
+      </button>
+
+      <button class="nav-item" onclick="switchTab('tab-store')">
+        <svg viewBox="0 0 24 24"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/></svg>
+        <span>Mi Tienda</span>
+      </button>
+
+      <button class="nav-item" onclick="switchTab('tab-feed')">
+        <svg viewBox="0 0 24 24"><path d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
+        <span>Feed & Alertas</span>
+      </button>
+
+      <button class="nav-item" onclick="switchTab('tab-chat')">
+        <svg viewBox="0 0 24 24"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+        <span>Chat</span>
+      </button>
+
+      <button class="nav-item" onclick="switchTab('tab-profile')">
+        <svg viewBox="0 0 24 24"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+        <span>Perfil</span>
+      </button>
+    </nav>
+
+  </div>
+
+  <!-- MODALS -->
+
+  <!-- Modal 1: Supabase Real Auth (Login / Register) -->
+  <div id="authModal" class="modal-overlay" onclick="closeModalOnOverlay(event, 'authModal')">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="authModalTitle">🔑 Iniciar Sesión / Crear Cuenta</h3>
+        <button class="modal-close" onclick="closeModal('authModal')">✕</button>
+      </div>
+
+      <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+        <button class="chip-btn active" id="btnTabLogin" style="flex: 1; text-align: center;" onclick="switchAuthTab('login')">Ingresar</button>
+        <button class="chip-btn" id="btnTabRegister" style="flex: 1; text-align: center;" onclick="switchAuthTab('register')">Crear Cuenta</button>
+      </div>
+
+      <!-- Login Form -->
+      <form id="loginForm" onsubmit="handleRealLogin(event)">
+        <div class="form-group">
+          <label class="form-label">Correo Electrónico</label>
+          <input type="email" id="loginEmail" class="input-control" placeholder="vendedora@betterware.com" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Contraseña</label>
+          <input type="password" id="loginPassword" class="input-control" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn-primary">Iniciar Sesión</button>
+      </form>
+
+      <!-- Register Form -->
+      <form id="registerForm" style="display: none;" onsubmit="handleRealRegister(event)">
+        <div class="form-group">
+          <label class="form-label">Nombre Completo</label>
+          <input type="text" id="regName" class="input-control" placeholder="Ej. Ana Luisa Martínez" required>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div class="form-group">
+            <label class="form-label">WhatsApp (10 dígitos)</label>
+            <input type="tel" id="regPhone" class="input-control" placeholder="5512345678" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Rol en Betterware</label>
+            <select id="regRole" class="input-control">
+              <option value="asociada">Asociada</option>
+              <option value="lider">Distribuidora / Líder</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Colonia / Zona de Entrega</label>
+          <input type="text" id="regColonia" class="input-control" placeholder="Ej. Col. Del Valle, CDMX" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Correo Electrónico</label>
+          <input type="email" id="regEmail" class="input-control" placeholder="tu@correo.com" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Contraseña</label>
+          <input type="password" id="regPassword" class="input-control" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn-primary">Registrar mi Tienda Digital</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 2: Mercado Pago Subscription ($49 MXN / mes) -->
+  <div id="subscribeModal" class="modal-overlay" onclick="closeModalOnOverlay(event, 'subscribeModal')">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>💳 Suscripción Mercado Pago</h3>
+        <button class="modal-close" onclick="closeModal('subscribeModal')">✕</button>
+      </div>
+      <div style="text-align: center; padding: 10px 0;">
+        <img src="https://http2.mlstatic.com/frontend-assets/mp-web-navigation/ui-navigation/5.28.3/mercadopago/logo__large.png" style="height: 36px; margin-bottom: 12px;">
+        <div style="font-size: 32px; font-weight: 800; color: #009EE3;">$49.00 MXN <span style="font-size: 16px; font-weight: 500; color: var(--text-muted);">/ mes</span></div>
+        <p style="font-size: 13px; color: var(--text-muted); margin: 8px 0 16px;">Mantén activa tu Tienda Digital y realiza traspasos ilimitados en tu colonia.</p>
+        
+        <div style="background: #EBF8FF; border: 1px solid #BEE3F8; border-radius: var(--radius-sm); padding: 12px; margin-bottom: 16px; text-align: left; font-size: 12px; color: #2B6CB0;">
+          ✔️ Tarjeta de Crédito o Débito<br>
+          ✔️ Pago en Efectivo en OXXO<br>
+          ✔️ Transferencia SPEI Mercado Pago
+        </div>
+
+        <button class="btn-primary" style="background: #009EE3;" onclick="executeMercadoPagoCheckout()">
+          🚀 Pagar $49 MXN con Mercado Pago
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 3: Public Seller Store Preview -->
+  <div id="sellerStoreModal" class="modal-overlay" onclick="closeModalOnOverlay(event, 'sellerStoreModal')">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="sellerStoreTitle" style="font-size: 16px;">Tienda Digital de Vendedora</h3>
+        <button class="modal-close" onclick="closeModal('sellerStoreModal')">✕</button>
+      </div>
+      <div id="sellerStoreContent">
+        <!-- Content inserted dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 4: Product Detail & Direct Contact / WhatsApp -->
+  <div id="productDetailModal" class="modal-overlay" onclick="closeModalOnOverlay(event, 'productDetailModal')">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="detailProductTitle" style="font-size: 16px;">Detalle del Producto</h3>
+        <button class="modal-close" onclick="closeModal('productDetailModal')">✕</button>
+      </div>
+      <div id="productDetailContent">
+        <!-- Content inserted dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 5: New Alert "Busco SKU" -->
+  <div id="newAlertModal" class="modal-overlay" onclick="closeModalOnOverlay(event, 'newAlertModal')">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>📢 Publicar Alerta "Busco SKU"</h3>
+        <button class="modal-close" onclick="closeModal('newAlertModal')">✕</button>
+      </div>
+      <form onsubmit="handleCreateAlert(event)">
+        <div class="form-group">
+          <label class="form-label">SKU del Producto que necesitas</label>
+          <input type="text" id="alertSkuInput" class="input-control" placeholder="Ej. 26032" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Cantidad Necesaria</label>
+          <input type="number" id="alertQtyInput" class="input-control" value="1" min="1" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Mensaje para vendedoras cercanas</label>
+          <textarea id="alertMsgInput" class="input-control" rows="3" placeholder="Ej. Urge para entregar a cliente hoy mismo en Col. Nápoles." required></textarea>
+        </div>
+        <button type="submit" class="btn-primary">Publicar Alerta a Vendedoras Cercanas</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- JavaScript Modules -->
+  <script src="js/catalog_data.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
