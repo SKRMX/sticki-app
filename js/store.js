@@ -370,8 +370,9 @@ if (typeof supabase !== 'undefined' && SUPABASE_URL && !SUPABASE_URL.includes('T
     getTrialInfo: () => {
       if (!state.currentUser) return { daysLeft: 20, isSubscribed: false };
       const start = new Date(state.currentUser.created_at || Date.now());
-      const diffDays = Math.ceil(Math.abs(new Date() - start) / (1000 * 60 * 60 * 24));
-      const daysLeft = Math.max(0, 20 - diffDays);
+      const diffDays = Math.floor(Math.abs(new Date() - start) / (1000 * 60 * 60 * 24));
+      const bonusDays = state.currentUser.trial_days_added || 0;
+      const daysLeft = Math.max(0, (20 + bonusDays) - diffDays);
       return { daysLeft, isSubscribed: state.currentUser.is_subscribed || false };
     },
     getSellerBySlug: (slug) => {

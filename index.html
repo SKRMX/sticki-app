@@ -7,8 +7,8 @@
   <meta name="description" content="MyStocki (mystocki.com) - Marketplace y red social colaborativa para vendedoras de Betterware. Traspasos de stock, tiendas digitales por perfil y entregas locales inmediatas.">
   
   <!-- Official App Favicon & Apple Touch Icons -->
-  <link rel="icon" type="image/png" href="assets/icon.png">
-  <link rel="apple-touch-icon" href="assets/icon.png">
+  <link rel="icon" type="image/svg+xml" href="assets/icono.svg">
+  <link rel="apple-touch-icon" href="assets/icono.svg">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#4F46E5">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -29,7 +29,7 @@
   <!-- AUTOMATIC PWA INSTALLATION BANNER -->
   <div id="pwaInstallBanner">
     <div class="pwa-banner-content">
-      <img src="assets/icon.png" alt="MyStocki App" class="pwa-banner-icon">
+      <img src="assets/icono.svg" alt="MyStocki App" class="pwa-banner-icon">
       <div style="flex: 1;">
         <div style="font-size: 13px; font-weight: 800;">📲 Instalar App MyStocki</div>
         <div style="font-size: 11px; color: #C7D2FE;" id="pwaBannerDesc">Añade acceso directo a tu pantalla de inicio.</div>
@@ -45,7 +45,7 @@
     <!-- SuperAdmin Header -->
     <header style="background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.1); padding: 12px 20px; position: sticky; top: 0; z-index: 1000; display: flex; align-items: center; justify-content: space-between;">
       <div style="display: flex; align-items: center; gap: 14px;">
-        <img src="assets/logo.png" alt="MyStocki" style="height: 38px; object-fit: contain; filter: brightness(0) invert(1);">
+        <img src="assets/logo.svg" alt="MyStocki" style="height: 42px; width: auto; object-fit: contain; filter: brightness(0) invert(1);">
         <span class="pill pill-warning" style="font-size: 11px;">EXECUTIVE CENTER</span>
       </div>
 
@@ -54,7 +54,9 @@
         <button class="btn-outline" style="color: #EF4444; border-color: rgba(239, 68, 68, 0.4); padding: 6px 12px; font-size: 12px; font-weight: 700;" onclick="handleLogout()">🔒 Cerrar Sesión</button>
       </div>
     </header>
-
+    
+    <!-- Rest of SuperAdmin View continues... -->
+    
     <!-- SuperAdmin Navigation Bar -->
     <div style="background: #1E293B; border-bottom: 1px solid rgba(255,255,255,0.08); padding: 0 20px; display: flex; gap: 16px;">
       <button class="chip-btn active" id="btnAdminTabDashboard" style="border-radius: 0; background: transparent; border: none; border-bottom: 3px solid #F59E0B; color: white; padding: 12px 16px; font-weight: 800;" onclick="switchAdminTab('dashboard')">📊 Métricas & Usuarias</button>
@@ -146,24 +148,16 @@
   <!-- REGULAR MOBILE VENDEDORA CONTAINER APP (For all normal users) -->
   <div class="app-container" id="regularUserApp">
     
-    <!-- Top Header with Official Logo Image -->
+    <!-- Top Header with Clean High-Res SVG Logo & Avatar Dropdown Popover -->
     <header class="top-header">
       <a href="#" style="text-decoration: none;" onclick="switchTab('tab-search'); return false;">
-        <img src="assets/logo.png" alt="MyStocki Betterware" class="brand-logo-img">
+        <img src="assets/logo.svg" alt="MyStocki Betterware" class="brand-logo-img">
       </a>
       
-      <!-- How it Works Button + Native OS Theme Switcher + Auth Widget -->
-      <div style="display: flex; align-items: center; gap: 6px;">
-        <button class="btn-outline" style="font-size: 11px; padding: 5px 9px; background: rgba(79, 70, 229, 0.1); color: var(--primary); border-color: rgba(79, 70, 229, 0.3); font-weight: 700;" onclick="openHowItWorksModal()">💡 ¿Cómo funciona?</button>
-        
-        <select id="osThemeSelect" class="role-selector" style="font-size: 11px; padding: 4px 6px;" onchange="setNativeTheme(this.value)">
-          <option value="auto">🌐 Auto OS</option>
-          <option value="ios">🍏 iOS</option>
-          <option value="android">🤖 Android</option>
-        </select>
-        
+      <!-- Clean Avatar Circle + Popover Dropdown Menu -->
+      <div style="display: flex; align-items: center; gap: 8px;">
         <div id="authHeaderWidget">
-          <!-- Injected dynamically -->
+          <!-- Avatar circle button & popover injected dynamically -->
         </div>
       </div>
     </header>
@@ -347,25 +341,114 @@
         </div>
       </section>
 
-      <!-- TAB 5: SUSCRIPCIÓN & PERFIL -->
+      <!-- TAB 5: SUSCRIPCIÓN & CONFIGURACIÓN DE PERFIL -->
       <section id="tab-profile" class="tab-section">
+        
+        <!-- CARD 1: INFORMACIÓN PERSONAL Y DE CUENTA -->
         <div class="card">
           <div class="card-title">
-            <span>💎 Estado de Suscripción</span>
+            <span>👤 Información Personal & Cuenta</span>
+            <span class="pill pill-accent" id="profileRoleBadge">Asociada</span>
+          </div>
+          
+          <form onsubmit="handleSaveProfileSettings(event)">
+            <div class="form-group">
+              <label class="form-label">Nombre Completo *</label>
+              <input type="text" id="settingFullName" class="input-control" required placeholder="Ej. Yeri Martínez">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <div class="form-group">
+                <label class="form-label">Código Asociada Betterware *</label>
+                <input type="text" id="settingAssocCode" class="input-control" required style="font-weight: 800; letter-spacing: 0.05em;">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Teléfono WhatsApp *</label>
+                <input type="tel" id="settingPhone" class="input-control" required placeholder="5512345678" maxlength="10">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Correo Electrónico (Cuenta)</label>
+              <input type="email" id="settingEmail" class="input-control" readonly style="background: #F1F5F9; color: var(--text-muted); font-weight: 600;">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Rol en Betterware *</label>
+              <select id="settingRole" class="input-control" style="font-weight: 600;">
+                <option value="asociada">Asociada</option>
+                <option value="lider">Distribuidora / Líder</option>
+              </select>
+            </div>
+
+            <button type="submit" class="btn-primary" style="background: linear-gradient(135deg, #4F46E5 0%, #312E81 100%);">💾 Guardar Información Personal</button>
+          </form>
+        </div>
+
+        <!-- CARD 2: DIRECCIÓN & UBICACIÓN DE ENTREGA (CP SEPOMEX) -->
+        <div class="card">
+          <div class="card-title">
+            <span>📍 Dirección & Ubicación de Entrega</span>
+            <span class="pill pill-primary">CP SEPOMEX</span>
+          </div>
+
+          <form onsubmit="handleSaveLocationSettings(event)">
+            <div class="form-group">
+              <label class="form-label">Código Postal (5 dígitos) *</label>
+              <input type="text" id="settingCP" class="input-control" placeholder="Ej. 91700 o 03100" maxlength="5" required oninput="handleSettingCPLookup(this.value)">
+            </div>
+
+            <div id="settingCPBox" style="font-size: 12px;">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+                <div>
+                  <span class="form-label">Estado:</span>
+                  <input type="text" id="settingEstado" class="input-control" readonly style="background: #E2E8F0; font-weight: 700;">
+                </div>
+                <div>
+                  <span class="form-label">Alcaldía / Mpio:</span>
+                  <input type="text" id="settingMunicipio" class="input-control" readonly style="background: #E2E8F0; font-weight: 700;">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Selecciona tu Colonia *</label>
+                <select id="settingColoniaSelect" class="input-control" required style="font-weight: 600;">
+                  <!-- Filled dynamically -->
+                </select>
+              </div>
+            </div>
+
+            <button type="submit" class="btn-primary" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%);">📍 Actualizar Ubicación de Entrega</button>
+          </form>
+        </div>
+
+        <!-- CARD 3: SUSCRIPCIÓN & DÍAS GRATIS -->
+        <div class="card">
+          <div class="card-title">
+            <span>💎 Estado de Suscripción & Días Gratis</span>
           </div>
           
           <div style="background: linear-gradient(135deg, #EEF2FF 0%, #E0F2FE 100%); padding: 16px; border-radius: var(--radius-md); border: 1px solid #C7D2FE; margin-bottom: 14px;">
-            <div style="font-size: 13px; font-weight: 700; color: var(--primary); margin-bottom: 4px;">PLAN 20 DÍAS PRUEBA GRATIS</div>
-            <div style="font-size: 22px; font-weight: 800; color: var(--text-main);" id="profileTrialCountdown">Quedan 20 días</div>
-            <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Acceso completo a la tienda digital, buscador por SKU y traspasos.</div>
+            <div style="font-size: 12px; font-weight: 700; color: var(--primary); text-transform: uppercase; margin-bottom: 4px;">DÍAS DE PRUEBA Y REGALOS SUPERADMIN</div>
+            <div style="font-size: 24px; font-weight: 800; color: var(--text-main);" id="profileTrialCountdown">Quedan 20 días gratis</div>
+            <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;" id="profileBonusDaysInfo">Incluye los regalos de meses gratis activados por el SuperAdmin.</div>
           </div>
 
           <div style="border-top: 1px solid var(--border-color); padding-top: 14px; margin-top: 14px;">
-            <div style="font-size: 14px; font-weight: 700; margin-bottom: 6px;">Suscripción Mercado Pago</div>
+            <div style="font-size: 14px; font-weight: 700; margin-bottom: 6px;">Suscripción Ilimitada Mercado Pago</div>
             <div style="font-size: 24px; font-weight: 800; color: var(--primary); margin-bottom: 12px;">$49 MXN <span style="font-size: 14px; font-weight: 500; color: var(--text-muted);">/ mes</span></div>
             <button class="btn-primary" onclick="openSubscribeModal()">💳 Pagar $49 MXN con Mercado Pago</button>
           </div>
         </div>
+
+        <!-- CARD 4: SEGURIDAD & SESIÓN -->
+        <div class="card">
+          <div class="card-title">
+            <span>🔒 Sesión & Seguridad</span>
+          </div>
+          <button class="btn-outline" style="width: 100%; color: var(--danger); border-color: rgba(239, 68, 68, 0.4); font-weight: 700;" onclick="handleLogout()">🔒 Cerrar Sesión de la Plataforma</button>
+        </div>
+
       </section>
 
     </main>

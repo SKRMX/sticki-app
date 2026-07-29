@@ -347,14 +347,18 @@ function exportCatalogJSON() {
 
 async function adminGiftFreeMonth(userId) {
   const state = StockiStore.getState();
-  const seller = state.sellers.find(s => s.id === userId);
+  const seller = state.sellers.find(s => s.id === userId || s.email.toLowerCase() === userId.toLowerCase());
   if (!seller) return;
 
   seller.trial_days_added = (seller.trial_days_added || 0) + 30;
+  if (state.currentUser && (state.currentUser.id === seller.id || state.currentUser.email.toLowerCase() === seller.email.toLowerCase())) {
+    state.currentUser.trial_days_added = seller.trial_days_added;
+  }
   StockiStore.saveLocal();
   await StockiStore.syncCloudDB();
-  showToast(`🎁 ¡Se regalaron +30 días gratis a ${seller.full_name}!`, 'success');
+  showToast(`🎁 ¡Se regalaron +30 días gratis a ${seller.full_name || 'vendedora'}!`, 'success');
   renderAdminMetricsAndUsers();
+  updateTrialDisplay();
 }
 
 async function adminApplyDiscount(userId) {
@@ -514,6 +518,22 @@ async function initApp() {
   }
 }
 
+function toggleHeaderUserMenu() {
+  const menu = document.getElementById('headerUserMenuPopover');
+  if (menu) menu.classList.toggle('active');
+}
+
+// Close dropdown popover when clicking outside
+document.addEventListener('click', (e) => {
+  const menu = document.getElementById('headerUserMenuPopover');
+  const btn = document.getElementById('headerAvatarBtn');
+  if (menu && menu.classList.contains('active')) {
+    if (!menu.contains(e.target) && (!btn || !btn.contains(e.target))) {
+      menu.classList.remove('active');
+    }
+  }
+});
+
 function updateAuthWidget() {
   const container = document.getElementById('authHeaderWidget');
   if (!container) return;
@@ -522,16 +542,40 @@ function updateAuthWidget() {
   const user = state.currentUser;
 
   if (user) {
+    const initial = (user.full_name || 'U').charAt(0).toUpperCase();
     container.innerHTML = `
-      <div style="display: flex; align-items: center; gap: 6px; cursor: pointer;" onclick="switchTab('tab-profile')">
-        <span class="seller-avatar" style="width: 28px; height: 28px; font-weight: 800;">${user.full_name ? user.full_name.charAt(0) : 'U'}</span>
-        <span style="font-size: 12px; font-weight: 700; color: var(--text-main); max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${user.full_name ? user.full_name.split(' ')[0] : 'Cuenta'}</span>
+      <div style="position: relative;">
+        <button id="headerAvatarBtn" class="header-user-avatar-btn" onclick="toggleHeaderUserMenu()">${initial}</button>
+        
+        <div id="headerUserMenuPopover" class="header-dropdown-menu">
+          <div style="padding: 10px 12px; border-bottom: 1px solid var(--border-color); text-align: left;">
+            <div style="font-size: 13px; font-weight: 800; color: var(--text-main); line-height: 1.2;">${user.full_name || 'Vendedora'}</div>
+            <div style="font-size: 11px; color: var(--text-muted);">${user.email}</div>
+          </div>
+          <button class="dropdown-item" onclick="toggleHeaderUserMenu(); switchTab('tab-profile');">
+            <span>👤</span> <span>Mi Perfil & Configuración</span>
+          </button>
+          <button class="dropdown-item" onclick="toggleHeaderUserMenu(); openHowItWorksModal();">
+            <span>💡</span> <span>¿Cómo funciona MyStocki?</span>
+          </button>
+          <div style="padding: 8px 12px; display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--text-muted);">
+            <span>🌐 Tema OS:</span>
+            <select class="role-selector" style="font-size: 11px; padding: 2px 4px;" onchange="setNativeTheme(this.value)">
+              <option value="auto">🌐 Auto OS</option>
+              <option value="ios">🍏 iOS</option>
+              <option value="android">🤖 Android</option>
+            </select>
+          </div>
+          <div class="dropdown-divider"></div>
+          <button class="dropdown-item" style="color: var(--danger);" onclick="toggleHeaderUserMenu(); handleLogout();">
+            <span>🚪</span> <span>Cerrar Sesión</span>
+          </button>
+        </div>
       </div>
-      <button class="btn-outline" style="padding: 4px 8px; font-size: 11px;" onclick="handleLogout()">Salir</button>
     `;
   } else {
     container.innerHTML = `
-      <button class="btn-primary" style="padding: 6px 12px; font-size: 12px;" onclick="openAuthModal('login')">🔑 Ingresar</button>
+      <button class="btn-primary" style="padding: 6px 14px; font-size: 12px; font-weight: 700;" onclick="openAuthModal('login')">🔑 Ingresar</button>
     `;
   }
 }
@@ -540,6 +584,7 @@ function updateTrialDisplay() {
   const trialInfo = StockiStore.getTrialInfo();
   const trialDaysText = document.getElementById('trialDaysText');
   const profileTrialCountdown = document.getElementById('profileTrialCountdown');
+  const profileBonusDaysInfo = document.getElementById('profileBonusDaysInfo');
   const state = StockiStore.getState();
 
   if (!state.currentUser) {
@@ -552,10 +597,131 @@ function updateTrialDisplay() {
     if (trialDaysText) trialDaysText.textContent = '⭐ SUSCRIPCIÓN ACTIVA MERCADO PAGO';
     if (profileTrialCountdown) profileTrialCountdown.textContent = 'Suscripción Activa ($49/mes)';
   } else {
+    const bonus = state.currentUser.trial_days_added || 0;
     const text = `Quedan ${trialInfo.daysLeft} días gratis`;
     if (trialDaysText) trialDaysText.textContent = text;
     if (profileTrialCountdown) profileTrialCountdown.textContent = text;
+    if (profileBonusDaysInfo) {
+      if (bonus > 0) {
+        profileBonusDaysInfo.textContent = `🎉 ¡SuperAdmin te ha regalado +${bonus} días gratis acumulados!`;
+        profileBonusDaysInfo.style.color = '#059669';
+        profileBonusDaysInfo.style.fontWeight = '700';
+      } else {
+        profileBonusDaysInfo.textContent = 'Acceso completo a tu tienda digital, buscador por SKU y traspasos.';
+      }
+    }
   }
+}
+
+function loadProfileSettingsForm() {
+  const state = StockiStore.getState();
+  const user = state.currentUser;
+  if (!user) return;
+
+  const fnInput = document.getElementById('settingFullName');
+  const codeInput = document.getElementById('settingAssocCode');
+  const phoneInput = document.getElementById('settingPhone');
+  const emailInput = document.getElementById('settingEmail');
+  const roleSelect = document.getElementById('settingRole');
+  const badgeRole = document.getElementById('profileRoleBadge');
+
+  if (fnInput) fnInput.value = user.full_name || '';
+  if (codeInput) codeInput.value = user.associate_code || '';
+  if (phoneInput) phoneInput.value = user.phone || '';
+  if (emailInput) emailInput.value = user.email || '';
+  if (roleSelect) roleSelect.value = user.role || 'asociada';
+  if (badgeRole) badgeRole.textContent = (user.role === 'lider' ? 'Distribuidora / Líder' : 'Asociada');
+
+  const colStr = user.colonia || '';
+  const cpMatch = colStr.match(/CP\s*(\d{5})/i);
+  if (cpMatch) {
+    const cpVal = cpMatch[1];
+    const cpInput = document.getElementById('settingCP');
+    if (cpInput) {
+      cpInput.value = cpVal;
+      handleSettingCPLookup(cpVal);
+    }
+  }
+}
+
+async function handleSettingCPLookup(val) {
+  const cleanCP = val.replace(/\D/g, '');
+  const box = document.getElementById('settingCPBox');
+  if (!box) return;
+
+  if (cleanCP.length !== 5) {
+    return;
+  }
+
+  const res = await StockiCPLookup.lookup(cleanCP);
+  if (res.valid) {
+    document.getElementById('settingEstado').value = res.estado;
+    document.getElementById('settingMunicipio').value = res.municipio;
+
+    const colSelect = document.getElementById('settingColoniaSelect');
+    colSelect.innerHTML = res.colonias.map(c => `<option value="${c}">${c}</option>`).join('');
+  } else {
+    document.getElementById('settingEstado').value = 'México';
+    document.getElementById('settingMunicipio').value = 'Zona ' + cleanCP;
+  }
+}
+
+async function handleSaveProfileSettings(e) {
+  e.preventDefault();
+  const state = StockiStore.getState();
+  const user = state.currentUser;
+  if (!user) {
+    showToast('Debes iniciar sesión para guardar tu configuración.', 'error');
+    return;
+  }
+
+  const fn = document.getElementById('settingFullName').value;
+  const code = document.getElementById('settingAssocCode').value;
+  const phone = document.getElementById('settingPhone').value;
+  const role = document.getElementById('settingRole').value;
+
+  user.full_name = fn;
+  user.associate_code = code;
+  user.phone = phone.replace(/\D/g, '');
+  user.whatsapp = '52' + user.phone;
+  user.role = role;
+
+  const idx = state.sellers.findIndex(s => s.id === user.id);
+  if (idx !== -1) state.sellers[idx] = user;
+
+  StockiStore.saveLocal();
+  await StockiStore.syncCloudDB();
+
+  showToast('✅ Información personal guardada en tu cuenta.', 'success');
+  updateAuthWidget();
+  renderMyInventory();
+}
+
+async function handleSaveLocationSettings(e) {
+  e.preventDefault();
+  const state = StockiStore.getState();
+  const user = state.currentUser;
+  if (!user) {
+    showToast('Debes iniciar sesión para guardar tu ubicación.', 'error');
+    return;
+  }
+
+  const cp = document.getElementById('settingCP').value;
+  const estado = document.getElementById('settingEstado').value;
+  const municipio = document.getElementById('settingMunicipio').value;
+  const colonia = document.getElementById('settingColoniaSelect').value;
+
+  const fullLoc = `Col. ${colonia}, ${municipio}, ${estado} (CP ${cp})`;
+  user.colonia = fullLoc;
+
+  const idx = state.sellers.findIndex(s => s.id === user.id);
+  if (idx !== -1) state.sellers[idx] = user;
+
+  StockiStore.saveLocal();
+  await StockiStore.syncCloudDB();
+
+  showToast('📍 Ubicación de entrega actualizada correctamente.', 'success');
+  renderMyInventory();
 }
 
 function switchTab(tabId) {
@@ -581,6 +747,7 @@ function switchTab(tabId) {
   if (tabId === 'tab-store') renderMyInventory();
   if (tabId === 'tab-feed') renderFeed();
   if (tabId === 'tab-chat') renderChatList();
+  if (tabId === 'tab-profile') loadProfileSettingsForm();
 }
 
 // ==========================================================================
