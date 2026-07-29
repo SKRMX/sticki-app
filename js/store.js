@@ -17,7 +17,7 @@ if (typeof supabase !== 'undefined' && SUPABASE_URL && !SUPABASE_URL.includes('T
 }
 
 (function () {
-  const STORAGE_KEY = 'mystocki_app_real_state_v7';
+  const STORAGE_KEY = 'mystocki_app_real_state_v8';
 
   const SUPER_ADMIN_PROFILE = {
     id: 'usr_superadmin_01',
@@ -44,13 +44,29 @@ if (typeof supabase !== 'undefined' && SUPABASE_URL && !SUPABASE_URL.includes('T
 
   let state = loadLocal();
 
+  function isDummyUser(s) {
+    if (!s) return true;
+    const em = (s.email || '').toLowerCase();
+    const fn = (s.full_name || s.name || '').toLowerCase();
+    const id = (s.id || '').toLowerCase();
+    return em.includes('analuisa') || em.includes('betterware.com') || fn.includes('ana luisa') || id === 'usr_vendedora_02';
+  }
+
   function loadLocal() {
     try {
+      // Clear all legacy storage keys
+      for (let i = 1; i <= 7; i++) {
+        localStorage.removeItem('mystocki_app_real_state_v' + i);
+      }
+
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (!parsed.sellers.find(s => s.email.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase())) {
-          parsed.sellers.unshift(SUPER_ADMIN_PROFILE);
+        if (parsed && parsed.sellers) {
+          parsed.sellers = parsed.sellers.filter(s => !isDummyUser(s));
+          if (!parsed.sellers.find(s => s.email.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase())) {
+            parsed.sellers.unshift(SUPER_ADMIN_PROFILE);
+          }
         }
         return parsed;
       }
@@ -80,10 +96,16 @@ if (typeof supabase !== 'undefined' && SUPABASE_URL && !SUPABASE_URL.includes('T
         cloudData = await resGet.json();
       }
 
-      // Merge local sellers with Cloud sellers
+      // Merge local sellers with Cloud sellers (strictly filtering out dummy users)
       const sellerMap = new Map();
-      (cloudData.sellers || []).forEach(s => sellerMap.set(s.id || s.email, s));
-      (state.sellers || []).forEach(s => sellerMap.set(s.id || s.email, s));
+
+      (cloudData.sellers || []).forEach(s => {
+        if (!isDummyUser(s)) sellerMap.set(s.id || s.email, s);
+      });
+
+      (state.sellers || []).forEach(s => {
+        if (!isDummyUser(s)) sellerMap.set(s.id || s.email, s);
+      });
 
       const mergedSellers = Array.from(sellerMap.values());
       if (!mergedSellers.find(s => s.email.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase())) {
@@ -102,7 +124,7 @@ if (typeof supabase !== 'undefined' && SUPABASE_URL && !SUPABASE_URL.includes('T
       state.inventory = mergedInventory;
       saveLocal();
 
-      // Write merged state back to Global Cloud DB
+      // Write clean merged state back to Global Cloud DB
       const payload = {
         updated_at: new Date().toISOString(),
         sellers: mergedSellers,
@@ -137,15 +159,6 @@ if (typeof supabase !== 'undefined' && SUPABASE_URL && !SUPABASE_URL.includes('T
       } catch (e) { console.warn(e); }
     }
     return state.currentUser;
-  }
-
-  // ==========================================================================
-  // RESEND EMAIL CONFIRMATION INTEGRATION
-  // ==========================================================================
-
-  async function sendResendWelcomeEmail(email, name, associateCode, storeSlug) {
-    console.log(`📧 Resend Welcome & Confirmation Email to ${email}`);
-    return { success: true };
   }
 
   // ==========================================================================
@@ -209,8 +222,6 @@ if (typeof supabase !== 'undefined' && SUPABASE_URL && !SUPABASE_URL.includes('T
 
     // Perform Immediate Global Cloud DB Sync (< 500ms)
     await syncCloudDB();
-
-    await sendResendWelcomeEmail(cleanEmail, fullName, cleanAssocCode, slug);
 
     return { success: true, profile };
   }
