@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Stocki / RedStock App - Main Interactive Controller & Real Backend
+   MyStocki (mystocki.com) - Main Interactive Controller & Real Backend
    ========================================================================== */
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -12,10 +12,23 @@ let currentCategoryFilter = 'all';
 let currentFeedMode = 'busco';
 
 // ==========================================================================
-// 👑 SUPER ADMIN DASHBOARD CONTROLLER & METRICS ENGINE
+// 👑 SUPER ADMIN DASHBOARD CONTROLLER & SECURE CREDENTIALS AUTHORIZATION
 // ==========================================================================
 
 function openAdminDashboard() {
+  const isSuper = StockiStore.isSuperAdmin();
+
+  if (!isSuper) {
+    // Prompt for SuperAdmin Password
+    const inputPass = prompt('🔒 Acceso Privado a SuperAdministrador MyStocki.\n\nIngresa la contraseña de SuperAdmin:');
+    if (inputPass === 'palmera22022800') {
+      showToast('👑 Acceso de SuperAdministrador concedido.', 'success');
+    } else {
+      showToast('❌ Contraseña de SuperAdministrador incorrecta.', 'error');
+      return;
+    }
+  }
+
   const modal = document.getElementById('adminModal');
   const container = document.getElementById('adminContent');
   if (!container) return;
@@ -29,7 +42,7 @@ function renderAdminDashboardContent() {
   if (!container) return;
 
   const state = StockiStore.getState();
-  const sellers = state.sellers || [];
+  const sellers = (state.sellers || []).filter(s => s.email !== StockiStore.SUPER_ADMIN_EMAIL);
   const inventory = state.inventory || [];
 
   const totalUsers = sellers.length;
@@ -113,9 +126,10 @@ function filterAdminUserTable(query) {
   const q = query.toLowerCase().trim();
   const state = StockiStore.getState();
   const filtered = state.sellers.filter(s => 
-    (s.full_name || '').toLowerCase().includes(q) ||
+    s.email !== StockiStore.SUPER_ADMIN_EMAIL &&
+    ((s.full_name || '').toLowerCase().includes(q) ||
     (s.email || '').toLowerCase().includes(q) ||
-    (s.associate_code || '').toLowerCase().includes(q)
+    (s.associate_code || '').toLowerCase().includes(q))
   );
 
   const container = document.getElementById('adminUserList');
@@ -284,9 +298,10 @@ function updateAuthWidget() {
   const user = state.currentUser;
 
   if (user) {
+    const isSuper = StockiStore.isSuperAdmin();
     container.innerHTML = `
       <div style="display: flex; align-items: center; gap: 6px; cursor: pointer;" onclick="switchTab('tab-profile')">
-        <span class="seller-avatar" style="width: 28px; height: 28px; font-weight: 800;">${user.full_name ? user.full_name.charAt(0) : 'U'}</span>
+        <span class="seller-avatar" style="width: 28px; height: 28px; font-weight: 800; background: ${isSuper ? '#F59E0B' : 'var(--primary)'}; color: white;">${isSuper ? '👑' : (user.full_name ? user.full_name.charAt(0) : 'U')}</span>
         <span style="font-size: 12px; font-weight: 700; color: var(--text-main); max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${user.full_name ? user.full_name.split(' ')[0] : 'Cuenta'}</span>
       </div>
       <button class="btn-outline" style="padding: 4px 8px; font-size: 11px;" onclick="handleLogout()">Salir</button>
@@ -405,6 +420,9 @@ async function handleRealLogin(e) {
     updateAuthWidget();
     renderMyInventory();
     renderMarketplace();
+    if (StockiStore.isSuperAdmin()) {
+      openAdminDashboard();
+    }
   } else {
     showToast(`Error al ingresar: ${res.message}`, 'error');
   }
@@ -472,7 +490,7 @@ async function handleNativeMercadoPagoPayment(e) {
   }
 
   setTimeout(() => {
-    showToast('⭐ ¡Suscripción activa! Gracias por suscribirte a Stocki ($49 MXN/mes).', 'success');
+    showToast('⭐ ¡Suscripción activa! Gracias por suscribirte a MyStocki ($49 MXN/mes).', 'success');
     closeModal('subscribeModal');
     updateTrialDisplay();
   }, 1200);
@@ -773,7 +791,7 @@ function viewSellerStore(sellerId) {
   if (titleEl) titleEl.textContent = `Tienda Digital de ${seller.full_name || seller.name}`;
 
   const waNumber = seller.whatsapp || '525512345678';
-  const whatsappMsg = encodeURIComponent(`¡Hola ${seller.full_name || seller.name}! Vi tu Tienda Digital en Stocki y me interesa consultar tus productos Betterware de entrega inmediata.`);
+  const whatsappMsg = encodeURIComponent(`¡Hola ${seller.full_name || seller.name}! Vi tu Tienda Digital en MyStocki y me interesa consultar tus productos Betterware de entrega inmediata.`);
   const waUrl = `https://wa.me/${waNumber}?text=${whatsappMsg}`;
 
   contentEl.innerHTML = `
@@ -852,7 +870,7 @@ function openProductDetailModal(inventoryItemId) {
   if (titleEl) titleEl.textContent = product.name;
 
   const waNumber = seller.whatsapp || '525512345678';
-  const whatsappMsg = encodeURIComponent(`¡Hola ${seller.full_name || seller.name}! Vi en Stocki que tienes el producto ${product.name} (SKU ${product.sku}). ¿Aún lo tienes para entrega hoy?`);
+  const whatsappMsg = encodeURIComponent(`¡Hola ${seller.full_name || seller.name}! Vi en MyStocki que tienes el producto ${product.name} (SKU ${product.sku}). ¿Aún lo tienes para entrega hoy?`);
   const waUrl = `https://wa.me/${waNumber}?text=${whatsappMsg}`;
 
   contentEl.innerHTML = `
@@ -892,7 +910,7 @@ function openProductDetailModal(inventoryItemId) {
 
     <div style="display: flex; flex-direction: column; gap: 8px;">
       <a href="${waUrl}" target="_blank" class="btn-whatsapp" style="text-decoration: none;">💬 Contactar por WhatsApp Directo</a>
-      <button class="btn-primary" onclick="closeModal('productDetailModal'); startDirectChat('${seller.id}', '${product.name}', '${product.sku}')">💬 Negociar Traspaso en Chat Stocki</button>
+      <button class="btn-primary" onclick="closeModal('productDetailModal'); startDirectChat('${seller.id}', '${product.name}', '${product.sku}')">💬 Negociar Traspaso en Chat MyStocki</button>
     </div>
   `;
 

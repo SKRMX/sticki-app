@@ -1,12 +1,13 @@
 /* ==========================================================================
-   Stocki / RedStock App - 100% Real Supabase Data Engine & Anti-Abuse System
+   MyStocki (mystocki.com) - Real Supabase Data Engine & Anti-Abuse System
    ========================================================================== */
 
 // ⚙️ CONFIGURACIÓN DE SUPABASE, RESEND EMAIL & MERCADO PAGO
 const SUPABASE_URL = 'https://zvghhfvsydajuiulgkir.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_J7s_lky44EFra28eggDS2A_Z0CKV98n';
 const MERCADO_PAGO_PUBLIC_KEY = 'APP_USR-c9a99b22-e6bf-4c3d-b1d2-ef788313c5c6';
-const RESEND_API_KEY = 're_123456789_stocki_welcome'; // Resend API integration for email confirmation
+const SUPER_ADMIN_EMAIL = 'jmcv2212@gmail.com';
+const SUPER_ADMIN_PASS = 'palmera22022800';
 
 let supabaseClient = null;
 if (typeof supabase !== 'undefined' && SUPABASE_URL && !SUPABASE_URL.includes('TU_PROYECTO')) {
@@ -15,11 +16,27 @@ if (typeof supabase !== 'undefined' && SUPABASE_URL && !SUPABASE_URL.includes('T
 }
 
 (function () {
-  const STORAGE_KEY = 'stocki_app_real_state_v4';
+  const STORAGE_KEY = 'mystocki_app_real_state_v5';
+
+  // Super Admin Account Definition
+  const SUPER_ADMIN_PROFILE = {
+    id: 'usr_superadmin_01',
+    full_name: 'SuperAdministrador MyStocki',
+    email: SUPER_ADMIN_EMAIL,
+    phone: '529211756673',
+    associate_code: 'SUPERADMIN',
+    role: 'superadmin',
+    colonia: 'Oficinas Centrales MyStocki',
+    whatsapp: '529211756673',
+    store_slug: 'admin-mystocki',
+    rating: 5.0,
+    verified: true,
+    is_subscribed: true
+  };
 
   const defaultState = {
     currentUser: null,
-    sellers: [],
+    sellers: [SUPER_ADMIN_PROFILE],
     inventory: [],
     alerts: [],
     messages: []
@@ -30,7 +47,14 @@ if (typeof supabase !== 'undefined' && SUPABASE_URL && !SUPABASE_URL.includes('T
   function loadLocal() {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Ensure superadmin profile exists in sellers list
+        if (!parsed.sellers.find(s => s.email === SUPER_ADMIN_EMAIL)) {
+          parsed.sellers.unshift(SUPER_ADMIN_PROFILE);
+        }
+        return parsed;
+      }
     } catch (e) { console.warn(e); }
     return defaultState;
   }
@@ -67,19 +91,18 @@ if (typeof supabase !== 'undefined' && SUPABASE_URL && !SUPABASE_URL.includes('T
   async function sendResendWelcomeEmail(email, name, associateCode, storeSlug) {
     console.log(`📧 Sending Resend Welcome & Confirmation Email to ${email}...`);
     try {
-      // Simulate/trigger Resend Email API call
       const emailPayload = {
-        from: 'Stocki Betterware <bienvenida@stocki.app>',
+        from: 'MyStocki Betterware <bienvenida@mystocki.com>',
         to: email,
-        subject: '✨ ¡Bienvenida a Stocki! Tu Tienda Digital Betterware ha sido Activada',
+        subject: '✨ ¡Bienvenida a MyStocki! Tu Tienda Digital Betterware ha sido Activada',
         html: `
           <div style="font-family: sans-serif; padding: 20px; color: #1E1B4B;">
             <h2>¡Hola ${name}!</h2>
-            <p>Tu Tienda Digital en <b>Stocki Betterware</b> ha sido creada y verificada exitosamente.</p>
+            <p>Tu Tienda Digital en <b>MyStocki Betterware</b> (mystocki.com) ha sido creada y verificada exitosamente.</p>
             <p><b>Datos de Tu Cuenta:</b></p>
             <ul>
               <li><b>Código de Asociada:</b> ${associateCode}</li>
-              <li><b>Enlace de tu Tienda:</b> https://stocki-app.netlify.app/?tienda=${storeSlug}</li>
+              <li><b>Enlace de tu Tienda:</b> https://mystocki.com/?tienda=${storeSlug}</li>
               <li><b>Prueba Gratis:</b> 20 Días de Acceso Completo</li>
             </ul>
             <p>¡Mucho éxito con tus ventas y traspasos de stock!</p>
@@ -94,7 +117,7 @@ if (typeof supabase !== 'undefined' && SUPABASE_URL && !SUPABASE_URL.includes('T
   }
 
   // ==========================================================================
-  // REAL SUPABASE AUTH & ANTI-ABUSE REGISTRATION (With Mandatory Betterware Code)
+  // REAL SUPABASE AUTH & ANTI-ABUSE REGISTRATION
   // ==========================================================================
 
   async function registerUser(email, password, fullName, phone, associateCode, role, locationStr) {
@@ -106,11 +129,11 @@ if (typeof supabase !== 'undefined' && SUPABASE_URL && !SUPABASE_URL.includes('T
     const cleanPhone = String(phone).replace(/\D/g, '');
 
     // Anti-Abuse Check: Ensure Betterware Associate Code is unique
-    const duplicateAssoc = state.sellers.find(s => s.associate_code === cleanAssocCode || s.email === email || s.phone === cleanPhone);
+    const duplicateAssoc = state.sellers.find(s => (s.associate_code === cleanAssocCode || s.email === email || s.phone === cleanPhone) && s.email !== SUPER_ADMIN_EMAIL);
     if (duplicateAssoc) {
       return { 
         success: false, 
-        message: `El Código de Asociada "${cleanAssocCode}" o el Correo "${email}" ya se encuentra registrado con una cuenta activa en Stocki.` 
+        message: `El Código de Asociada "${cleanAssocCode}" o el Correo "${email}" ya se encuentra registrado con una cuenta activa en MyStocki.` 
       };
     }
 
@@ -153,7 +176,6 @@ if (typeof supabase !== 'undefined' && SUPABASE_URL && !SUPABASE_URL.includes('T
       state.sellers.push(profile);
       saveLocal();
 
-      // Trigger Resend email welcome confirmation
       await sendResendWelcomeEmail(email, fullName, cleanAssocCode, slug);
 
       return { success: true, profile };
@@ -186,11 +208,18 @@ if (typeof supabase !== 'undefined' && SUPABASE_URL && !SUPABASE_URL.includes('T
   }
 
   async function loginUser(email, password) {
+    // Check SuperAdmin Credentials
+    if (email.trim().toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase() && password === SUPER_ADMIN_PASS) {
+      state.currentUser = SUPER_ADMIN_PROFILE;
+      saveLocal();
+      return { success: true, profile: SUPER_ADMIN_PROFILE };
+    }
+
     if (supabaseClient) {
       const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-      if (error) return { success: false, message: error.message };
+      if (error && email !== SUPER_ADMIN_EMAIL) return { success: false, message: error.message };
 
-      if (data.user) {
+      if (data && data.user) {
         const { data: prof } = await supabaseClient.from('profiles').select('*').eq('id', data.user.id).single();
         state.currentUser = prof || { id: data.user.id, full_name: email.split('@')[0], role: 'asociada' };
         saveLocal();
@@ -199,7 +228,7 @@ if (typeof supabase !== 'undefined' && SUPABASE_URL && !SUPABASE_URL.includes('T
     }
 
     // Local check
-    const found = state.sellers.find(s => s.email === email);
+    const found = state.sellers.find(s => s.email.toLowerCase() === email.toLowerCase());
     if (found) {
       state.currentUser = found;
       saveLocal();
@@ -221,7 +250,13 @@ if (typeof supabase !== 'undefined' && SUPABASE_URL && !SUPABASE_URL.includes('T
     if (supabaseClient) {
       try {
         const { data: profs } = await supabaseClient.from('profiles').select('*');
-        if (profs && profs.length > 0) state.sellers = profs;
+        if (profs && profs.length > 0) {
+          // Merge with sellers
+          state.sellers = profs;
+          if (!state.sellers.find(s => s.email === SUPER_ADMIN_EMAIL)) {
+            state.sellers.unshift(SUPER_ADMIN_PROFILE);
+          }
+        }
 
         const { data: invs } = await supabaseClient.from('seller_inventories').select('*');
         if (invs) state.inventory = invs;
@@ -307,6 +342,10 @@ if (typeof supabase !== 'undefined' && SUPABASE_URL && !SUPABASE_URL.includes('T
     addInventoryItem,
     deleteInventoryItem,
     generateMercadoPagoLink,
+    SUPER_ADMIN_EMAIL,
+    isSuperAdmin: () => {
+      return state.currentUser && state.currentUser.email && state.currentUser.email.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase();
+    },
     getTrialInfo: () => {
       if (!state.currentUser) return { daysLeft: 20, isSubscribed: false };
       const start = new Date(state.currentUser.created_at || Date.now());
