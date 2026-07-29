@@ -25,7 +25,6 @@ function detectAndSetNativeTheme(forcedMode = 'auto') {
     return;
   }
 
-  // Auto-detection by User Agent
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const isAndroid = /Android/.test(navigator.userAgent);
 
@@ -34,7 +33,7 @@ function detectAndSetNativeTheme(forcedMode = 'auto') {
   } else if (isAndroid) {
     body.classList.add('os-android');
   } else {
-    body.classList.add('os-ios'); // Default elegant fallback
+    body.classList.add('os-ios');
   }
 }
 
@@ -43,10 +42,12 @@ function setNativeTheme(mode) {
 }
 
 async function initApp() {
+  await StockiStore.checkActiveSession();
+  await StockiStore.fetchRealDataFromSupabase();
+
   updateAuthWidget();
   updateTrialDisplay();
   renderRematesCarousel();
-  await StockiStore.fetchAllInventories();
   renderMarketplace();
   renderMyInventory();
   renderFeed();
@@ -86,6 +87,13 @@ function updateTrialDisplay() {
   const trialInfo = StockiStore.getTrialInfo();
   const trialDaysText = document.getElementById('trialDaysText');
   const profileTrialCountdown = document.getElementById('profileTrialCountdown');
+  const state = StockiStore.getState();
+
+  if (!state.currentUser) {
+    if (trialDaysText) trialDaysText.textContent = '20 Días Gratis para Vendedoras';
+    if (profileTrialCountdown) profileTrialCountdown.textContent = '20 Días Prueba Gratis';
+    return;
+  }
 
   if (trialInfo.isSubscribed) {
     if (trialDaysText) trialDaysText.textContent = '⭐ SUSCRIPCIÓN ACTIVA MERCADO PAGO';
@@ -182,6 +190,7 @@ async function handleRealLogin(e) {
     closeModal('authModal');
     updateAuthWidget();
     renderMyInventory();
+    renderMarketplace();
   } else {
     alert(`❌ Error al ingresar: ${res.message}`);
   }
@@ -203,7 +212,7 @@ async function handleRealRegister(e) {
 
   const res = await StockiStore.registerUser(email, pass, name, phone, role, fullLocation);
   if (res.success) {
-    alert(`✨ ¡Felicidades! Tu Tienda Digital "stocki-app.netlify.app/?tienda=${res.profile.store_slug}" ha sido registrada para ${fullLocation}.`);
+    alert(`✨ ¡Felicidades! Tu Tienda Digital "stocki-app.netlify.app/?tienda=${res.profile.store_slug}" ha sido creada exitosamente para ${fullLocation}.`);
     closeModal('authModal');
     updateAuthWidget();
     switchTab('tab-store');
@@ -215,6 +224,8 @@ async function handleRealRegister(e) {
 async function handleLogout() {
   await StockiStore.logoutUser();
   updateAuthWidget();
+  renderMyInventory();
+  renderMarketplace();
   alert('👋 Has cerrado sesión correctamente.');
 }
 
@@ -230,7 +241,7 @@ function renderRematesCarousel() {
   const remateItems = state.inventory.filter(i => i.is_remate);
 
   if (remateItems.length === 0) {
-    container.innerHTML = `<span style="font-size: 12px; color: var(--text-muted);">No hay productos en remate hoy.</span>`;
+    container.innerHTML = `<span style="font-size: 12px; color: var(--text-muted); font-style: italic;">No hay artículos en remate publicados hoy en tu zona.</span>`;
     return;
   }
 
@@ -265,15 +276,15 @@ function renderMarketplace() {
 
   state.inventory.forEach(invItem => {
     const seller = state.sellers.find(s => s.id === invItem.seller_id) || {
-      name: 'Vendedora Local',
-      colonia: 'CDMX',
-      distanceKm: 1.2
+      full_name: 'Vendedora Registrada',
+      colonia: 'México',
+      distanceKm: 1.0
     };
     const catProduct = window.BW_CATALOG ? window.BW_CATALOG.find(p => StockiStore.strSKU(p.sku) === StockiStore.strSKU(invItem.sku)) : null;
 
     if (!catProduct) return;
 
-    if (currentDistanceFilter !== 'all' && seller.distanceKm > parseFloat(currentDistanceFilter)) return;
+    if (currentDistanceFilter !== 'all' && (seller.distanceKm || 1) > parseFloat(currentDistanceFilter)) return;
     if (currentCategoryFilter !== 'all' && catProduct.category.toLowerCase() !== currentCategoryFilter.toLowerCase()) return;
 
     if (searchQ) {
@@ -286,14 +297,15 @@ function renderMarketplace() {
     results.push({ ...invItem, seller, catProduct });
   });
 
-  if (countEl) countEl.textContent = `Mostrando ${results.length} artículos disponibles hoy cerca de ti`;
+  if (countEl) countEl.textContent = `Mostrando ${results.length} artículos disponibles en stock en vivo`;
 
   if (results.length === 0) {
     grid.innerHTML = `
-      <div style="grid-column: 1 / -1; text-align: center; padding: 40px 20px; color: var(--text-muted);">
-        <div style="font-size: 36px; margin-bottom: 8px;">📦</div>
-        <div style="font-weight: 700; font-size: 15px; color: var(--text-main);">No hay stock registrado con este filtro</div>
-        <p style="font-size: 12px; margin-top: 4px;">Intenta cambiar el radio de distancia o buscar otro SKU de Betterware.</p>
+      <div style="grid-column: 1 / -1; text-align: center; padding: 40px 20px; color: var(--text-muted); background: #FFFFFF; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+        <div style="font-size: 42px; margin-bottom: 8px;">🏪</div>
+        <div style="font-weight: 800; font-size: 16px; color: var(--text-main);">Aún no hay stock publicado en tu zona</div>
+        <p style="font-size: 13px; margin: 6px 0 16px; color: var(--text-muted);">Sé la primera vendedora de tu colonia en publicar tu inventario de Betterware.</p>
+        <button class="btn-primary" style="max-width: 280px; margin: 0 auto;" onclick="openAuthModal('register')">🚀 Crear mi Tienda Digital Gratis</button>
       </div>
     `;
     return;
@@ -315,7 +327,7 @@ function renderMarketplace() {
         <div class="product-thumb-wrapper">
           <img src="${p.image}" alt="${p.name}" class="product-thumb" onerror="this.src='https://via.placeholder.com/300?text=Betterware'">
           ${item.is_remate ? '<span class="badge-remate">🔥 REMATE</span>' : ''}
-          <span class="badge-distance">📍 ${s.distanceKm ? s.distanceKm + ' km' : 'Cerca'}</span>
+          <span class="badge-distance">📍 ${s.colonia ? s.colonia.split(',')[0] : 'Cerca'}</span>
         </div>
         <div class="product-info">
           <span class="product-sku">SKU ${p.sku}</span>
@@ -409,19 +421,39 @@ async function handleAddStock(e) {
   }
 }
 
+// RENDER MY INVENTORY & PROFILE STORE TAB
 function renderMyInventory() {
   const container = document.getElementById('myInventoryList');
   if (!container) return;
 
   const state = StockiStore.getState();
-  const currentSellerId = state.currentUser ? state.currentUser.id : 'sel_001';
+  const user = state.currentUser;
 
-  const myUser = state.currentUser || state.sellers[0];
-  document.getElementById('myProfileName').textContent = myUser.full_name || myUser.name;
-  document.getElementById('myProfileColonia').textContent = myUser.colonia || 'CDMX';
-  document.getElementById('myProfileInitials').textContent = (myUser.full_name || myUser.name || 'M').substring(0, 2).toUpperCase();
+  // Unauthenticated Empty State prompt
+  if (!user) {
+    document.getElementById('myProfileName').textContent = 'Tu Tienda Digital';
+    document.getElementById('myProfileColonia').textContent = 'Ingresa para activar tu tienda';
+    document.getElementById('myProfileInitials').textContent = '🔒';
+    document.getElementById('statItemCount').textContent = '0';
+    document.getElementById('statRating').textContent = '5.0 ★';
+    document.getElementById('statTraspasos').textContent = '0';
 
-  const items = state.inventory.filter(i => i.seller_id === currentSellerId);
+    container.innerHTML = `
+      <div style="text-align: center; padding: 30px 16px; background: #FAFAFA; border-radius: var(--radius-md);">
+        <div style="font-size: 40px; margin-bottom: 8px;">🔑</div>
+        <div style="font-size: 16px; font-weight: 800; color: var(--text-main);">Inicia Sesión o Registra tu Tienda</div>
+        <p style="font-size: 13px; color: var(--text-muted); margin: 6px 0 16px;">Para subir tu inventario por SKU y recibir solicitudes de traspaso de otras vendedoras, debes ingresar a tu cuenta.</p>
+        <button class="btn-primary" style="max-width: 240px; margin: 0 auto;" onclick="openAuthModal('login')">Ingresar a mi Cuenta</button>
+      </div>
+    `;
+    return;
+  }
+
+  document.getElementById('myProfileName').textContent = user.full_name || 'Vendedora Registrada';
+  document.getElementById('myProfileColonia').textContent = user.colonia || 'México';
+  document.getElementById('myProfileInitials').textContent = (user.full_name || 'V').substring(0, 2).toUpperCase();
+
+  const items = state.inventory.filter(i => i.seller_id === user.id);
 
   const statCount = document.getElementById('statItemCount');
   if (statCount) statCount.textContent = items.reduce((acc, i) => acc + i.qty, 0);
@@ -465,8 +497,10 @@ async function deleteStockItem(id) {
 
 function viewSellerStore(sellerId) {
   const state = StockiStore.getState();
-  const seller = state.sellers.find(s => s.id === sellerId) || state.sellers[0];
-  const items = state.inventory.filter(i => i.seller_id === sellerId);
+  const seller = state.sellers.find(s => s.id === sellerId) || state.currentUser;
+  if (!seller) return;
+
+  const items = state.inventory.filter(i => i.seller_id === seller.id);
 
   const modal = document.getElementById('sellerStoreModal');
   const titleEl = document.getElementById('sellerStoreTitle');
@@ -481,8 +515,8 @@ function viewSellerStore(sellerId) {
   contentEl.innerHTML = `
     <div style="background: linear-gradient(135deg, #1E1B4B 0%, #312E81 100%); color: white; border-radius: var(--radius-md); padding: 16px; margin-bottom: 16px;">
       <div style="font-size: 18px; font-weight: 800;">${seller.full_name || seller.name}</div>
-      <div style="font-size: 12px; color: #C7D2FE; margin-bottom: 8px;">📍 ${seller.colonia || 'CDMX'}</div>
-      <p style="font-size: 12px; color: #E0E7FF; margin-bottom: 12px;">${seller.bio || 'Vendedora verificada con entrega local inmediata.'}</p>
+      <div style="font-size: 12px; color: #C7D2FE; margin-bottom: 8px;">📍 ${seller.colonia || 'México'}</div>
+      <p style="font-size: 12px; color: #E0E7FF; margin-bottom: 12px;">Vendedora verificada con entrega local inmediata.</p>
       
       <div style="display: flex; gap: 8px;">
         <a href="${waUrl}" target="_blank" class="btn-whatsapp" style="text-decoration: none;">💬 Contactar por WhatsApp Directo</a>
@@ -491,6 +525,7 @@ function viewSellerStore(sellerId) {
 
     <h4 style="font-size: 14px; margin-bottom: 10px;">Catálogo Físico Disponible (${items.length} ítems):</h4>
     <div style="display: flex; flex-direction: column; gap: 10px;">
+      ${items.length === 0 ? '<p style="font-size: 12px; color: var(--text-muted);">Esta vendedora no tiene stock publicado por el momento.</p>' : ''}
       ${items.map(i => {
         const p = window.BW_CATALOG.find(cat => StockiStore.strSKU(cat.sku) === StockiStore.strSKU(i.sku)) || { name: 'SKU ' + i.sku, image: '', price_sale: 0 };
         return `
@@ -513,14 +548,21 @@ function viewSellerStore(sellerId) {
 
 function previewMyStore() {
   const state = StockiStore.getState();
-  const currentId = state.currentUser ? state.currentUser.id : 'sel_001';
-  viewSellerStore(currentId);
+  if (!state.currentUser) {
+    openAuthModal('login');
+    return;
+  }
+  viewSellerStore(state.currentUser.id);
 }
 
 function copyStoreLink() {
   const state = StockiStore.getState();
-  const user = state.currentUser || state.sellers[0];
-  const slug = user.store_slug || 'maria-gomez';
+  const user = state.currentUser;
+  if (!user) {
+    openAuthModal('login');
+    return;
+  }
+  const slug = user.store_slug || 'mi-tienda';
   const url = `${window.location.origin}${window.location.pathname}?tienda=${slug}`;
   
   navigator.clipboard.writeText(url).then(() => {
@@ -535,7 +577,7 @@ function openProductDetailModal(inventoryItemId) {
   const invItem = state.inventory.find(i => i.id === inventoryItemId);
   if (!invItem) return;
 
-  const seller = state.sellers.find(s => s.id === invItem.seller_id) || state.sellers[0];
+  const seller = state.sellers.find(s => s.id === invItem.seller_id) || { full_name: 'Vendedora Registrada', colonia: 'México', whatsapp: '525512345678' };
   const product = window.BW_CATALOG.find(p => StockiStore.strSKU(p.sku) === StockiStore.strSKU(invItem.sku));
   if (!product) return;
 
@@ -578,7 +620,7 @@ function openProductDetailModal(inventoryItemId) {
       <div style="display: flex; justify-content: space-between; align-items: center;">
         <div>
           <div style="font-size: 14px; font-weight: 800;">${seller.full_name || seller.name}</div>
-          <div style="font-size: 11px; color: var(--text-muted);">📍 ${seller.colonia || 'CDMX'}</div>
+          <div style="font-size: 11px; color: var(--text-muted);">📍 ${seller.colonia || 'México'}</div>
         </div>
         <button class="btn-outline" onclick="viewSellerStore('${seller.id}')">Ver Tienda Completa</button>
       </div>
@@ -616,7 +658,7 @@ function renderFeed() {
   const alerts = state.alerts.filter(a => a.alert_type === currentFeedMode);
 
   if (alerts.length === 0) {
-    container.innerHTML = `<p style="text-align: center; color: var(--text-muted); padding: 30px;">No hay publicaciones recientes en esta categoría.</p>`;
+    container.innerHTML = `<p style="text-align: center; color: var(--text-muted); padding: 30px; background: white; border-radius: var(--radius-md); border: 1px solid var(--border-color);">📢 Aún no hay publicaciones recientes en esta sección.</p>`;
     return;
   }
 
@@ -626,17 +668,24 @@ function renderFeed() {
         <div>
           <span style="font-size: 11px; font-weight: 800; color: var(--primary);">SKU ${a.sku} • ${a.product_name || 'Producto Betterware'}</span>
           <div style="font-size: 14px; font-weight: 700; color: var(--text-main);">${a.seller_name || 'Vendedora Local'}</div>
-          <div style="font-size: 11px; color: var(--text-muted);">📍 ${a.colonia || 'CDMX'} • ${a.created_at || 'Reciente'}</div>
+          <div style="font-size: 11px; color: var(--text-muted);">📍 ${a.colonia || 'México'} • ${a.created_at || 'Reciente'}</div>
         </div>
         <span class="pill ${a.alert_type === 'busco' ? 'pill-warning' : 'pill-accent'}">${a.alert_type === 'busco' ? 'BUSCO SKU' : 'REMATE'}</span>
       </div>
       <p style="font-size: 13px; color: var(--text-main); margin-bottom: 12px;">"${a.message}"</p>
-      <button class="btn-secondary" style="width: 100%;" onclick="startDirectChat('sel_002', '${a.product_name}', '${a.sku}')">💬 Responder a Vendedora</button>
+      <button class="btn-secondary" style="width: 100%;" onclick="startDirectChat('${a.seller_id || ''}', '${a.product_name}', '${a.sku}')">💬 Responder a Vendedora</button>
     </div>
   `).join('');
 }
 
-function openNewAlertModal() { document.getElementById('newAlertModal')?.classList.add('active'); }
+function openNewAlertModal() {
+  const state = StockiStore.getState();
+  if (!state.currentUser) {
+    openAuthModal('login');
+    return;
+  }
+  document.getElementById('newAlertModal')?.classList.add('active');
+}
 
 function handleCreateAlert(e) {
   e.preventDefault();
@@ -648,12 +697,13 @@ function handleCreateAlert(e) {
   const productName = catProduct ? catProduct.name : 'Producto SKU ' + sku;
 
   const state = StockiStore.getState();
-  const user = state.currentUser || state.sellers[0];
+  const user = state.currentUser;
+  if (!user) return;
 
   state.alerts.unshift({
     id: 'alt_' + Date.now(),
-    seller_name: user.full_name || user.name,
-    colonia: user.colonia || 'CDMX',
+    seller_name: user.full_name,
+    colonia: user.colonia,
     sku: StockiStore.strSKU(sku),
     product_name: productName,
     needed_qty: parseInt(qty, 10),
@@ -663,7 +713,7 @@ function handleCreateAlert(e) {
   });
   StockiStore.saveLocal();
 
-  alert(`📢 ¡Alerta publicada! Notificando a las vendedoras de la zona que tienen el SKU ${sku} en stock.`);
+  alert(`📢 ¡Alerta publicada! Notificando a las vendedoras que tienen el SKU ${sku} en stock.`);
   closeModal('newAlertModal');
   switchFeedMode('busco');
 }
@@ -673,11 +723,29 @@ function renderChatList() {
   if (!container) return;
 
   const state = StockiStore.getState();
+  const user = state.currentUser;
+
+  if (!user) {
+    container.innerHTML = `
+      <div style="text-align: center; padding: 30px 16px; background: white; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+        <div style="font-size: 36px; margin-bottom: 8px;">💬</div>
+        <div style="font-size: 15px; font-weight: 800; color: var(--text-main);">Inicia Sesión para Chatear</div>
+        <p style="font-size: 12px; color: var(--text-muted); margin: 6px 0 14px;">Inicia sesión para acordar traspasos de stock y entregas locales con vendedoras cercanas.</p>
+        <button class="btn-primary" style="max-width: 220px; margin: 0 auto;" onclick="openAuthModal('login')">Ingresar a mi Cuenta</button>
+      </div>
+    `;
+    return;
+  }
+
   const chats = state.messages;
+  if (chats.length === 0) {
+    container.innerHTML = `<p style="text-align: center; color: var(--text-muted); padding: 30px; background: white; border-radius: var(--radius-md); border: 1px solid var(--border-color);">💬 Aún no tienes chats de traspaso. Explora el buscador y contacta a vendedoras cercanas.</p>`;
+    return;
+  }
 
   container.innerHTML = chats.map(c => `
     <div class="chat-item" onclick="alert('💬 Abriendo chat de traspaso con ${c.sender_name}...')">
-      <div class="chat-avatar">${c.sender_name.charAt(0)}</div>
+      <div class="chat-avatar">${c.sender_name ? c.sender_name.charAt(0) : 'V'}</div>
       <div class="chat-details">
         <div class="chat-user-name">
           <span>${c.sender_name}</span>
@@ -690,6 +758,11 @@ function renderChatList() {
 }
 
 function startDirectChat(sellerId, productName, sku) {
+  const state = StockiStore.getState();
+  if (!state.currentUser) {
+    openAuthModal('login');
+    return;
+  }
   switchTab('tab-chat');
   alert(`💬 Iniciando conversación por ${productName} (SKU ${sku}) con la vendedora...`);
 }
