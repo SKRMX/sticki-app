@@ -12,6 +12,14 @@ let currentCategoryFilter = 'all';
 let currentFeedMode = 'busco';
 
 // ==========================================================================
+// 💡 HOW IT WORKS LANDING MODAL CONTROLLER
+// ==========================================================================
+
+function openHowItWorksModal() {
+  document.getElementById('howItWorksModal')?.classList.add('active');
+}
+
+// ==========================================================================
 // 🍞 NATIVE IN-APP TOAST & CONFIRM DIALOG SYSTEM (No Browser alert())
 // ==========================================================================
 
@@ -387,7 +395,11 @@ function renderMarketplace() {
         <div style="font-size: 42px; margin-bottom: 8px;">🏪</div>
         <div style="font-weight: 800; font-size: 16px; color: var(--text-main);">Aún no hay stock publicado en tu zona</div>
         <p style="font-size: 13px; margin: 6px 0 16px; color: var(--text-muted);">Sé la primera vendedora de tu colonia en publicar tu inventario de Betterware.</p>
-        <button class="btn-primary" style="max-width: 280px; margin: 0 auto;" onclick="openAuthModal('register')">🚀 Crear mi Tienda Digital Gratis</button>
+        
+        <div style="display: flex; flex-direction: column; gap: 8px; max-width: 280px; margin: 0 auto;">
+          <button class="btn-primary" onclick="openAuthModal('register')">🚀 Crear mi Tienda Digital Gratis</button>
+          <button class="btn-secondary" onclick="openHowItWorksModal()">💡 ¿Cómo funciona la plataforma?</button>
+        </div>
       </div>
     `;
     return;
@@ -532,7 +544,10 @@ function renderMyInventory() {
         <div style="font-size: 40px; margin-bottom: 8px;">🔑</div>
         <div style="font-size: 16px; font-weight: 800; color: var(--text-main);">Inicia Sesión o Registra tu Tienda</div>
         <p style="font-size: 13px; color: var(--text-muted); margin: 6px 0 16px;">Para subir tu inventario por SKU y recibir solicitudes de traspaso de otras vendedoras, debes ingresar a tu cuenta.</p>
-        <button class="btn-primary" style="max-width: 240px; margin: 0 auto;" onclick="openAuthModal('login')">Ingresar a mi Cuenta</button>
+        <div style="display: flex; flex-direction: column; gap: 8px; max-width: 240px; margin: 0 auto;">
+          <button class="btn-primary" onclick="openAuthModal('login')">Ingresar a mi Cuenta</button>
+          <button class="btn-secondary" onclick="openHowItWorksModal()">💡 Ver ¿Cómo funciona?</button>
+        </div>
       </div>
     `;
     return;

@@ -31,12 +31,14 @@
         </div>
       </a>
       
-      <!-- Native OS Theme Switcher + Auth Widget -->
-      <div style="display: flex; align-items: center; gap: 8px;">
-        <select id="osThemeSelect" class="role-selector" style="font-size: 11px; padding: 4px 8px;" onchange="setNativeTheme(this.value)">
+      <!-- How it Works Button + Native OS Theme Switcher + Auth Widget -->
+      <div style="display: flex; align-items: center; gap: 6px;">
+        <button class="btn-outline" style="font-size: 11px; padding: 5px 9px; background: rgba(79, 70, 229, 0.1); color: var(--primary); border-color: rgba(79, 70, 229, 0.3); font-weight: 700;" onclick="openHowItWorksModal()">💡 ¿Cómo funciona?</button>
+        
+        <select id="osThemeSelect" class="role-selector" style="font-size: 11px; padding: 4px 6px;" onchange="setNativeTheme(this.value)">
           <option value="auto">🌐 Auto OS</option>
-          <option value="ios">🍏 Modo iOS</option>
-          <option value="android">🤖 Modo Android</option>
+          <option value="ios">🍏 iOS</option>
+          <option value="android">🤖 Android</option>
         </select>
         
         <div id="authHeaderWidget">
@@ -278,6 +280,70 @@
   </div>
 
   <!-- MODALS -->
+
+  <!-- Modal 0: LANDING PAGE MODAL - "¿CÓMO FUNCIONA STOCKI?" -->
+  <div id="howItWorksModal" class="modal-overlay" onclick="closeModalOnOverlay(event, 'howItWorksModal')">
+    <div class="modal-card" style="max-height: 90vh;">
+      <div class="modal-handle"></div>
+      <div class="modal-header">
+        <h3 style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 20px;">💡</span> ¿Cómo Funciona Stocki?
+        </h3>
+        <button class="modal-close" onclick="closeModal('howItWorksModal')">✕</button>
+      </div>
+
+      <div style="padding: 4px 0 16px;">
+        <div style="background: linear-gradient(135deg, #1E1B4B 0%, #4F46E5 100%); color: white; border-radius: var(--radius-md); padding: 18px; text-align: center; margin-bottom: 16px; box-shadow: var(--shadow-md);">
+          <div style="font-size: 20px; font-weight: 800; margin-bottom: 6px;">La Red Social y Marketplace para Vendedoras Betterware</div>
+          <p style="font-size: 13px; color: #E0E7FF; line-height: 1.4;">Resuelve la falta de stock físico, conecta con vendedoras cercanas y vende más sin perder clientes.</p>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 14px;">
+          
+          <!-- Pillar 1 -->
+          <div style="display: flex; gap: 12px; align-items: flex-start; background: #FAFAFA; border: 1px solid var(--border-color); padding: 12px; border-radius: var(--radius-md);">
+            <div style="background: var(--primary-light); color: var(--primary); font-size: 22px; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800;">🏪</div>
+            <div style="flex: 1;">
+              <h4 style="font-size: 14px; font-weight: 800; color: var(--text-main); margin-bottom: 4px;">1. Crea tu Tienda Digital en &lt; 5 Segundos</h4>
+              <p style="font-size: 12px; color: var(--text-muted); line-height: 1.4;">Solo escribe el <b>SKU</b> del producto Betterware y su foto, título y precios se autocompletan. Comparte tu link personalizado con tus clientes locales para que vean tu stock disponible hoy.</p>
+            </div>
+          </div>
+
+          <!-- Pillar 2 -->
+          <div style="display: flex; gap: 12px; align-items: flex-start; background: #FAFAFA; border: 1px solid var(--border-color); padding: 12px; border-radius: var(--radius-md);">
+            <div style="background: var(--secondary-light); color: var(--secondary); font-size: 22px; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800;">🔄</div>
+            <div style="flex: 1;">
+              <h4 style="font-size: 14px; font-weight: 800; color: var(--text-main); margin-bottom: 4px;">2. Traspasos entre Vendedoras Cercanas</h4>
+              <p style="font-size: 12px; color: var(--text-muted); line-height: 1.4;">¿Un cliente te pide un producto urgente y tú no lo tienes? Búscalo en el mapa y consíguelo hoy mismo con otra vendedora de tu colonia a <b>costo de asociada</b>. ¡No pierdas la venta!</p>
+            </div>
+          </div>
+
+          <!-- Pillar 3 -->
+          <div style="display: flex; gap: 12px; align-items: flex-start; background: #FAFAFA; border: 1px solid var(--border-color); padding: 12px; border-radius: var(--radius-md);">
+            <div style="background: var(--warning-light); color: var(--warning); font-size: 22px; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800;">📢</div>
+            <div style="flex: 1;">
+              <h4 style="font-size: 14px; font-weight: 800; color: var(--text-main); margin-bottom: 4px;">3. Alertas "Busco SKU"</h4>
+              <p style="font-size: 12px; color: var(--text-muted); line-height: 1.4;">Publica una alerta en el feed solicitando el SKU exacto que necesitas. Las vendedoras cercanas de tu zona recibirán la notificación para entregártelo de inmediato.</p>
+            </div>
+          </div>
+
+          <!-- Pillar 4 -->
+          <div style="display: flex; gap: 12px; align-items: flex-start; background: #FAFAFA; border: 1px solid var(--border-color); padding: 12px; border-radius: var(--radius-md);">
+            <div style="background: var(--accent-light); color: var(--accent); font-size: 22px; width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800;">🔥</div>
+            <div style="flex: 1;">
+              <h4 style="font-size: 14px; font-weight: 800; color: var(--text-main); margin-bottom: 4px;">4. Feed de Remates (Dinero Rápido)</h4>
+              <p style="font-size: 12px; color: var(--text-muted); line-height: 1.4;">¿Tienes inventario atascado en tu casa? Publica tus artículos en Remate con descuento para recuperar tu inversión de forma acelerada.</p>
+            </div>
+          </div>
+
+        </div>
+
+        <div style="margin-top: 18px;">
+          <button class="btn-primary" onclick="closeModal('howItWorksModal'); openAuthModal('register');">🚀 Probar 20 Días Gratis Ahora</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Modal 1: Supabase Real Auth (Login / Register with Mandatory Anti-Abuse Checks) -->
   <div id="authModal" class="modal-overlay" onclick="closeModalOnOverlay(event, 'authModal')">
