@@ -90,19 +90,19 @@ h1, h2, h3, h4, h5, h6 {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: var(--glass-blur);
   border-bottom: 1px solid var(--border-color);
-  padding: 10px 16px;
+  padding: 10px 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
 /* ==========================================================================
-   ✨ OFFICIAL MYSTOCKI IMAGE LOGO BRANDING
+   ✨ OFFICIAL MYSTOCKI IMAGE LOGO BRANDING (PROMINENT HIGH-RES)
    ========================================================================== */
 
 .brand-logo-img {
-  height: 38px;
-  max-width: 170px;
+  height: 52px;
+  max-width: 220px;
   object-fit: contain;
   display: block;
 }
