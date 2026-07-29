@@ -17,7 +17,7 @@ if (typeof supabase !== 'undefined' && SUPABASE_URL && !SUPABASE_URL.includes('T
 }
 
 (function () {
-  const STORAGE_KEY = 'mystocki_app_real_state_v11';
+  const STORAGE_KEY = 'mystocki_app_real_state_v12';
 
   const SUPER_ADMIN_PROFILE = {
     id: 'usr_superadmin_01',
@@ -62,7 +62,7 @@ if (typeof supabase !== 'undefined' && SUPABASE_URL && !SUPABASE_URL.includes('T
   function loadLocal() {
     try {
       // Clear legacy storage keys
-      for (let i = 1; i <= 10; i++) {
+      for (let i = 1; i <= 11; i++) {
         localStorage.removeItem('mystocki_app_real_state_v' + i);
       }
 
@@ -91,7 +91,7 @@ if (typeof supabase !== 'undefined' && SUPABASE_URL && !SUPABASE_URL.includes('T
   }
 
   // ==========================================================================
-  // REAL-TIME GLOBAL CLOUD PERSISTENCE ENGINE (BIDIRECTIONAL SYNC + DEDUPLICATION)
+  // REAL-TIME GLOBAL CLOUD PERSISTENCE ENGINE (BIDIRECTIONAL SYNC + DELETION FIX)
   // ==========================================================================
 
   async function syncCloudDB() {
@@ -150,10 +150,24 @@ if (typeof supabase !== 'undefined' && SUPABASE_URL && !SUPABASE_URL.includes('T
         mergedSellers.unshift(SUPER_ADMIN_PROFILE);
       }
 
-      // Merge inventory
+      // Smart Inventory Merge (local state is authoritative for currentUser items so deletions persist)
       const invMap = new Map();
-      (cloudData.inventory || []).forEach(i => invMap.set(i.id, i));
-      (state.inventory || []).forEach(i => invMap.set(i.id, i));
+      const currentUserId = state.currentUser ? state.currentUser.id : null;
+      const currentUserEmail = state.currentUser ? (state.currentUser.email || '').toLowerCase() : null;
+
+      // 1. Add cloud items EXCEPT those owned by currentUser (local state is authoritative for currentUser)
+      (cloudData.inventory || []).forEach(i => {
+        const isOwner = (currentUserId && i.seller_id === currentUserId) ||
+                        (currentUserEmail && i.seller_email && i.seller_email.toLowerCase() === currentUserEmail);
+        if (!isOwner) {
+          invMap.set(i.id, i);
+        }
+      });
+
+      // 2. Add all local inventory items (authoritative for currentUser + cached items)
+      (state.inventory || []).forEach(i => {
+        invMap.set(i.id, i);
+      });
 
       const mergedInventory = Array.from(invMap.values());
 
