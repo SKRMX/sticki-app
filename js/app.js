@@ -24,55 +24,11 @@ function initPwaInstaller() {
       .then(reg => console.log('⚡ PWA Service Worker registrado con éxito:', reg.scope))
       .catch(err => console.warn('PWA SW Registration:', err));
   }
-
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-
-  if (isStandalone) {
-    return;
-  }
-
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPwaPrompt = e;
-
-    const banner = document.getElementById('pwaInstallBanner');
-    if (banner) banner.style.display = 'block';
-  });
-
-  if (isIOS && !isStandalone) {
-    setTimeout(() => {
-      const banner = document.getElementById('pwaInstallBanner');
-      const btn = document.getElementById('btnPwaInstallAction');
-      const desc = document.getElementById('pwaBannerDesc');
-      if (banner && desc) {
-        banner.style.display = 'block';
-        if (desc) desc.textContent = "Toca el botón Compartir ⎋ y 'Agregar a Inicio'.";
-        if (btn) btn.style.display = 'none';
-      }
-    }, 2500);
-  }
 }
 
-function triggerPwaInstall() {
-  if (deferredPwaPrompt) {
-    deferredPwaPrompt.prompt();
-    deferredPwaPrompt.userChoice.then((choiceResult) => {
-      if (choiceResult.outcome === 'accepted') {
-        showToast('🎉 ¡Gracias por instalar MyStocki en tu pantalla de inicio!', 'success');
-      }
-      deferredPwaPrompt = null;
-      closePwaBanner();
-    });
-  } else {
-    showToast('Toca el menú de tu navegador y selecciona "Agregar a pantalla de inicio".', 'info');
-  }
-}
+function triggerPwaInstall() {}
 
-function closePwaBanner() {
-  const banner = document.getElementById('pwaInstallBanner');
-  if (banner) banner.style.display = 'none';
-}
+function closePwaBanner() {}
 
 // ==========================================================================
 // 👑 EXECUTIVE SUPERADMIN CONTROL CENTER (jmcv2212@gmail.com Exclusivo)
