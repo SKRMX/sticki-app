@@ -102,13 +102,14 @@ h1, h2, h3, h4, h5, h6 {
   z-index: 100;
 }
 
-/* Official Logo Branding */
+/* Official Logo Branding (SVG Aspect Ratio Preservation) */
 .brand-logo-img {
-  height: 40px;
+  height: 44px;
   width: auto;
-  max-width: 190px;
+  aspect-ratio: 1024 / 682;
   object-fit: contain;
   display: block;
+  flex-shrink: 0;
 }
 
 /* Header User Avatar & Dropdown Popover */
@@ -842,10 +843,11 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .pwa-banner-icon {
-  width: 42px;
-  height: 42px;
-  border-radius: 10px;
-  object-fit: cover;
+  height: 38px;
+  width: auto;
+  aspect-ratio: 1024 / 682;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
 /* ==========================================================================
