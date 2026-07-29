@@ -1,8 +1,8 @@
 /* ==========================================================================
-   Stocki / RedStock App - Mobile-First Design System
+   Stocki / RedStock App - Mobile-First Design System & Native OS Adaptability
    ========================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap');
 
 :root {
   /* Brand Palette */
@@ -31,7 +31,7 @@
   --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06);
   --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
   --shadow-lg: 0 10px 25px -5px rgba(79, 70, 229, 0.15);
-  --glass-blur: blur(12px);
+  --glass-blur: blur(16px);
   
   /* Radius & Transitions */
   --radius-sm: 8px;
@@ -50,7 +50,7 @@
 }
 
 body {
-  font-family: 'Plus Jakarta Sans', 'Outfit', sans-serif;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   background-color: #F1F5F9;
   color: var(--text-main);
   line-height: 1.5;
@@ -59,12 +59,12 @@ body {
   display: flex;
   flex-direction: column;
   overflow-x: hidden;
-  padding-bottom: 75px; /* Space for Mobile Bottom Nav */
+  padding-bottom: 75px;
 }
 
 /* Typography Headings */
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Outfit', -apple-system, sans-serif;
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--text-main);
@@ -73,7 +73,7 @@ h1, h2, h3, h4, h5, h6 {
 /* App Container Layout */
 .app-container {
   width: 100%;
-  max-width: 500px; /* Strict Mobile-First App Viewport */
+  max-width: 500px;
   margin: 0 auto;
   min-height: 100vh;
   background: #FFFFFF;
@@ -136,18 +136,6 @@ h1, h2, h3, h4, h5, h6 {
   text-transform: uppercase;
 }
 
-.role-selector {
-  background: var(--bg-main);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-full);
-  padding: 5px 12px;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--primary);
-  cursor: pointer;
-  outline: none;
-}
-
 /* Trial Banner (20 Days Free) */
 .trial-banner {
   background: linear-gradient(90deg, #4F46E5 0%, #0284C7 100%);
@@ -187,11 +175,6 @@ h1, h2, h3, h4, h5, h6 {
   transition: var(--transition);
 }
 
-.btn-subscribe-pill:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-}
-
 /* Main Content Area */
 .main-content {
   flex: 1;
@@ -222,10 +205,6 @@ h1, h2, h3, h4, h5, h6 {
   margin-bottom: 16px;
   box-shadow: var(--shadow-sm);
   transition: var(--transition);
-}
-
-.card:hover {
-  box-shadow: var(--shadow-md);
 }
 
 .card-title {
@@ -289,15 +268,6 @@ h1, h2, h3, h4, h5, h6 {
   transition: var(--transition);
 }
 
-.btn-primary:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-lg);
-}
-
-.btn-primary:active {
-  transform: translateY(0);
-}
-
 .btn-secondary {
   background: var(--secondary-light);
   color: var(--secondary);
@@ -308,10 +278,6 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 700;
   cursor: pointer;
   transition: var(--transition);
-}
-
-.btn-secondary:hover {
-  background: #BAE6FD;
 }
 
 .btn-whatsapp {
@@ -329,11 +295,6 @@ h1, h2, h3, h4, h5, h6 {
   gap: 6px;
   width: 100%;
   transition: var(--transition);
-}
-
-.btn-whatsapp:hover {
-  background: #1EBE5B;
-  box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
 }
 
 .btn-outline {
@@ -379,7 +340,7 @@ h1, h2, h3, h4, h5, h6 {
 .product-thumb-wrapper {
   position: relative;
   width: 100%;
-  padding-top: 100%; /* 1:1 Aspect Ratio */
+  padding-top: 100%;
   background: #F1F5F9;
   overflow: hidden;
 }
@@ -391,11 +352,6 @@ h1, h2, h3, h4, h5, h6 {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.3s ease;
-}
-
-.product-card:hover .product-thumb {
-  transform: scale(1.05);
 }
 
 .badge-remate {
@@ -409,7 +365,6 @@ h1, h2, h3, h4, h5, h6 {
   padding: 2px 6px;
   border-radius: var(--radius-sm);
   text-transform: uppercase;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
 }
 
 .badge-distance {
@@ -599,11 +554,6 @@ h1, h2, h3, h4, h5, h6 {
   transition: var(--transition);
 }
 
-.chat-item:hover {
-  background: var(--primary-light);
-  border-color: var(--primary);
-}
-
 .chat-avatar {
   width: 44px;
   height: 44px;
@@ -673,6 +623,16 @@ h1, h2, h3, h4, h5, h6 {
   overflow-y: auto;
   animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   box-shadow: 0 -10px 30px rgba(0,0,0,0.2);
+  position: relative;
+}
+
+.modal-handle {
+  width: 38px;
+  height: 5px;
+  background: #E2E8F0;
+  border-radius: 99px;
+  margin: 0 auto 12px auto;
+  display: none;
 }
 
 @keyframes slideUp {
@@ -703,7 +663,7 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--text-muted);
 }
 
-/* Bottom Navigation Bar (Mobile Native Look) */
+/* Bottom Navigation Bar */
 .bottom-nav {
   position: fixed;
   bottom: 0;
@@ -760,7 +720,6 @@ h1, h2, h3, h4, h5, h6 {
   transform: translateY(-2px);
 }
 
-/* Quick Action Bar */
 .action-bar {
   display: flex;
   gap: 8px;
@@ -770,9 +729,7 @@ h1, h2, h3, h4, h5, h6 {
   scrollbar-width: none;
 }
 
-.action-bar::-webkit-scrollbar {
-  display: none;
-}
+.action-bar::-webkit-scrollbar { display: none; }
 
 .chip-btn {
   white-space: nowrap;
@@ -791,4 +748,122 @@ h1, h2, h3, h4, h5, h6 {
   background: var(--primary);
   color: white;
   border-color: var(--primary);
+}
+
+.pill {
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pill-primary { background: var(--primary-light); color: var(--primary); }
+.pill-accent { background: var(--accent-light); color: var(--accent); }
+.pill-warning { background: var(--warning-light); color: var(--warning); }
+
+
+/* ==========================================================================
+   📱 NATIVE OS ADAPTATION MODES (iOS HIG vs Android Material Design 3)
+   ========================================================================== */
+
+/* 🍏 iOS HIG MODE */
+body.os-ios {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+  background-color: #F2F2F7;
+}
+
+body.os-ios .app-container {
+  background: #F2F2F7;
+}
+
+body.os-ios .top-header {
+  background: rgba(249, 249, 249, 0.88);
+  backdrop-filter: blur(25px);
+  border-bottom: 0.5px solid rgba(60, 60, 67, 0.18);
+}
+
+body.os-ios .card {
+  border-radius: 18px;
+  border: none;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+  background: #FFFFFF;
+}
+
+body.os-ios .bottom-nav {
+  background: rgba(249, 249, 249, 0.88);
+  backdrop-filter: blur(25px);
+  border-top: 0.5px solid rgba(60, 60, 67, 0.18);
+  height: 72px;
+}
+
+body.os-ios .nav-item.active {
+  color: #007AFF; /* Apple Native Blue */
+}
+
+body.os-ios .nav-item.active svg {
+  stroke: #007AFF;
+}
+
+body.os-ios .btn-primary {
+  background: #007AFF;
+  border-radius: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+body.os-ios .modal-card {
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
+}
+
+body.os-ios .modal-handle {
+  display: block;
+}
+
+/* 🤖 ANDROID MATERIAL DESIGN 3 MODE */
+body.os-android {
+  font-family: 'Roboto', sans-serif;
+  background-color: #FEF7FF;
+}
+
+body.os-android .app-container {
+  background: #FEF7FF;
+}
+
+body.os-android .top-header {
+  background: #F3EDF7;
+  border-bottom: 1px solid #E7E0EC;
+}
+
+body.os-android .card {
+  border-radius: 16px;
+  border: 1px solid #E7E0EC;
+  background: #FFFFFF;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+body.os-android .bottom-nav {
+  background: #F3EDF7;
+  border-top: 1px solid #E7E0EC;
+  height: 72px;
+}
+
+body.os-android .nav-item.active {
+  color: #1D192B;
+}
+
+body.os-android .nav-item.active svg {
+  stroke: #6750A4; /* Material 3 Primary Purple */
+  background: #E8DEF8;
+  padding: 2px 14px;
+  border-radius: 16px;
+}
+
+body.os-android .btn-primary {
+  background: #6750A4;
+  border-radius: 24px;
+  font-weight: 600;
 }

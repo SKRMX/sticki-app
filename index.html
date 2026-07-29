@@ -13,7 +13,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://sdk.mercadopago.com/js/v2"></script>
 </head>
-<body>
+<body class="os-auto">
 
   <!-- Mobile App Outer Container -->
   <div class="app-container">
@@ -28,9 +28,17 @@
         </div>
       </a>
       
-      <!-- User Auth State or Account Button -->
-      <div id="authHeaderWidget" style="display: flex; align-items: center; gap: 8px;">
-        <!-- Injected dynamically by app.js -->
+      <!-- Native OS Theme Switcher + Auth Widget -->
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <select id="osThemeSelect" class="role-selector" style="font-size: 11px; padding: 4px 8px;" onchange="setNativeTheme(this.value)">
+          <option value="auto">🌐 Auto OS</option>
+          <option value="ios">🍏 Modo iOS</option>
+          <option value="android">🤖 Modo Android</option>
+        </select>
+        
+        <div id="authHeaderWidget">
+          <!-- Injected dynamically -->
+        </div>
       </div>
     </header>
 
@@ -78,7 +86,7 @@
           </div>
         </div>
 
-        <!-- Featured Section: Remates & Más Vendidos -->
+        <!-- Featured Section: Remates del Día -->
         <div id="featuredSection" style="margin-bottom: 16px;">
           <div style="font-size: 14px; font-weight: 800; color: var(--text-main); margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between;">
             <span>🔥 Remates del Día (Dinero Rápido)</span>
@@ -229,31 +237,7 @@
           <div style="border-top: 1px solid var(--border-color); padding-top: 14px; margin-top: 14px;">
             <div style="font-size: 14px; font-weight: 700; margin-bottom: 6px;">Suscripción Mercado Pago</div>
             <div style="font-size: 24px; font-weight: 800; color: var(--primary); margin-bottom: 12px;">$49 MXN <span style="font-size: 14px; font-weight: 500; color: var(--text-muted);">/ mes</span></div>
-            <ul style="font-size: 13px; color: var(--text-muted); padding-left: 18px; margin-bottom: 16px;">
-              <li>Mantenimiento de tu Tienda Digital pública</li>
-              <li>Búsquedas ilimitadas de inventario cercano</li>
-              <li>Panel consolidador para Líderes de Red</li>
-              <li>Soporte de pagos con Tarjeta, Débito o OXXO (Mercado Pago)</li>
-            </ul>
             <button class="btn-primary" onclick="openSubscribeModal()">💳 Pagar $49 MXN con Mercado Pago</button>
-          </div>
-        </div>
-
-        <!-- Leader Team Consolidation View -->
-        <div id="leaderConsolidationPanel" class="card">
-          <div class="card-title">
-            <span>👑 Panel Consolidador de Red (Líder)</span>
-          </div>
-          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">Inventario consolidado de las asociadas de tu grupo.</p>
-          <div style="background: #F8FAFC; border: 1px solid var(--border-color); padding: 12px; border-radius: var(--radius-sm);">
-            <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; margin-bottom: 6px;">
-              <span>Total Stock en Red:</span>
-              <span style="color: var(--primary);">15 artículos</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 700;">
-              <span>Valor Total a Costo Distribuidor:</span>
-              <span style="color: var(--accent);">$3,420.00 MXN</span>
-            </div>
           </div>
         </div>
       </section>
@@ -292,9 +276,10 @@
 
   <!-- MODALS -->
 
-  <!-- Modal 1: Supabase Real Auth (Login / Register) -->
+  <!-- Modal 1: Supabase Real Auth (Login / Register with CP Auto-Lookup) -->
   <div id="authModal" class="modal-overlay" onclick="closeModalOnOverlay(event, 'authModal')">
     <div class="modal-card">
+      <div class="modal-handle"></div>
       <div class="modal-header">
         <h3 id="authModalTitle">🔑 Iniciar Sesión / Crear Cuenta</h3>
         <button class="modal-close" onclick="closeModal('authModal')">✕</button>
@@ -318,12 +303,13 @@
         <button type="submit" class="btn-primary">Iniciar Sesión</button>
       </form>
 
-      <!-- Register Form -->
+      <!-- Register Form with CP Lookup -->
       <form id="registerForm" style="display: none;" onsubmit="handleRealRegister(event)">
         <div class="form-group">
           <label class="form-label">Nombre Completo</label>
           <input type="text" id="regName" class="input-control" placeholder="Ej. Ana Luisa Martínez" required>
         </div>
+
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
           <div class="form-group">
             <label class="form-label">WhatsApp (10 dígitos)</label>
@@ -337,10 +323,37 @@
             </select>
           </div>
         </div>
-        <div class="form-group">
-          <label class="form-label">Colonia / Zona de Entrega</label>
-          <input type="text" id="regColonia" class="input-control" placeholder="Ej. Col. Del Valle, CDMX" required>
+
+        <!-- CÓDIGO POSTAL AUTO-LOOKUP SECTION -->
+        <div style="background: #F8FAFC; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 14px;">
+          <div style="font-size: 11px; font-weight: 800; color: var(--primary); margin-bottom: 6px; text-transform: uppercase;">📍 Ubicación Precisa por Código Postal (CP)</div>
+          
+          <div class="form-group" style="margin-bottom: 10px;">
+            <label class="form-label">Código Postal (5 dígitos)</label>
+            <input type="text" id="regCP" class="input-control" placeholder="Ej. 03100" maxlength="5" required oninput="handleCPLookup(this.value)">
+          </div>
+
+          <div id="cpResultBox" style="display: none; font-size: 12px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+              <div>
+                <span class="form-label">Estado:</span>
+                <input type="text" id="regEstado" class="input-control" readonly style="background: #E2E8F0; font-weight: 700;">
+              </div>
+              <div>
+                <span class="form-label">Alcaldía / Mpio:</span>
+                <input type="text" id="regMunicipio" class="input-control" readonly style="background: #E2E8F0; font-weight: 700;">
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Selecciona tu Colonia</label>
+              <select id="regColoniaSelect" class="input-control" required style="font-weight: 600;">
+                <!-- Filled dynamically by CP lookup -->
+              </select>
+            </div>
+          </div>
         </div>
+
         <div class="form-group">
           <label class="form-label">Correo Electrónico</label>
           <input type="email" id="regEmail" class="input-control" placeholder="tu@correo.com" required>
@@ -354,9 +367,10 @@
     </div>
   </div>
 
-  <!-- Modal 2: Mercado Pago Subscription ($49 MXN / mes) -->
+  <!-- Modal 2: Mercado Pago Subscription -->
   <div id="subscribeModal" class="modal-overlay" onclick="closeModalOnOverlay(event, 'subscribeModal')">
     <div class="modal-card">
+      <div class="modal-handle"></div>
       <div class="modal-header">
         <h3>💳 Suscripción Mercado Pago</h3>
         <button class="modal-close" onclick="closeModal('subscribeModal')">✕</button>
@@ -366,12 +380,6 @@
         <div style="font-size: 32px; font-weight: 800; color: #009EE3;">$49.00 MXN <span style="font-size: 16px; font-weight: 500; color: var(--text-muted);">/ mes</span></div>
         <p style="font-size: 13px; color: var(--text-muted); margin: 8px 0 16px;">Mantén activa tu Tienda Digital y realiza traspasos ilimitados en tu colonia.</p>
         
-        <div style="background: #EBF8FF; border: 1px solid #BEE3F8; border-radius: var(--radius-sm); padding: 12px; margin-bottom: 16px; text-align: left; font-size: 12px; color: #2B6CB0;">
-          ✔️ Tarjeta de Crédito o Débito<br>
-          ✔️ Pago en Efectivo en OXXO<br>
-          ✔️ Transferencia SPEI Mercado Pago
-        </div>
-
         <button class="btn-primary" style="background: #009EE3;" onclick="executeMercadoPagoCheckout()">
           🚀 Pagar $49 MXN con Mercado Pago
         </button>
@@ -382,6 +390,7 @@
   <!-- Modal 3: Public Seller Store Preview -->
   <div id="sellerStoreModal" class="modal-overlay" onclick="closeModalOnOverlay(event, 'sellerStoreModal')">
     <div class="modal-card">
+      <div class="modal-handle"></div>
       <div class="modal-header">
         <h3 id="sellerStoreTitle" style="font-size: 16px;">Tienda Digital de Vendedora</h3>
         <button class="modal-close" onclick="closeModal('sellerStoreModal')">✕</button>
@@ -395,6 +404,7 @@
   <!-- Modal 4: Product Detail & Direct Contact / WhatsApp -->
   <div id="productDetailModal" class="modal-overlay" onclick="closeModalOnOverlay(event, 'productDetailModal')">
     <div class="modal-card">
+      <div class="modal-handle"></div>
       <div class="modal-header">
         <h3 id="detailProductTitle" style="font-size: 16px;">Detalle del Producto</h3>
         <button class="modal-close" onclick="closeModal('productDetailModal')">✕</button>
@@ -408,6 +418,7 @@
   <!-- Modal 5: New Alert "Busco SKU" -->
   <div id="newAlertModal" class="modal-overlay" onclick="closeModalOnOverlay(event, 'newAlertModal')">
     <div class="modal-card">
+      <div class="modal-handle"></div>
       <div class="modal-header">
         <h3>📢 Publicar Alerta "Busco SKU"</h3>
         <button class="modal-close" onclick="closeModal('newAlertModal')">✕</button>
@@ -433,6 +444,7 @@
   <!-- JavaScript Modules -->
   <script src="js/catalog_data.js"></script>
   <script src="js/store.js"></script>
+  <script src="js/cp_lookup.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

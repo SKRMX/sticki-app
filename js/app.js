@@ -3,12 +3,44 @@
    ========================================================================== */
 
 document.addEventListener('DOMContentLoaded', async () => {
+  detectAndSetNativeTheme();
   await initApp();
 });
 
 let currentDistanceFilter = 'all';
 let currentCategoryFilter = 'all';
 let currentFeedMode = 'busco';
+
+// Native OS Theme Adapter (iOS HIG vs Android Material Design 3)
+function detectAndSetNativeTheme(forcedMode = 'auto') {
+  const body = document.body;
+  body.classList.remove('os-ios', 'os-android', 'os-auto');
+
+  if (forcedMode === 'ios') {
+    body.classList.add('os-ios');
+    return;
+  }
+  if (forcedMode === 'android') {
+    body.classList.add('os-android');
+    return;
+  }
+
+  // Auto-detection by User Agent
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const isAndroid = /Android/.test(navigator.userAgent);
+
+  if (isIOS) {
+    body.classList.add('os-ios');
+  } else if (isAndroid) {
+    body.classList.add('os-android');
+  } else {
+    body.classList.add('os-ios'); // Default elegant fallback
+  }
+}
+
+function setNativeTheme(mode) {
+  detectAndSetNativeTheme(mode);
+}
 
 async function initApp() {
   updateAuthWidget();
@@ -20,7 +52,6 @@ async function initApp() {
   renderFeed();
   renderChatList();
 
-  // Check URL query param for store slug: ?tienda=maria-gomez
   const urlParams = new URLSearchParams(window.location.search);
   const storeSlug = urlParams.get('tienda');
   if (storeSlug) {
@@ -29,7 +60,6 @@ async function initApp() {
   }
 }
 
-// Render Top Header Auth Widget (User Profile or Sign In Button)
 function updateAuthWidget() {
   const container = document.getElementById('authHeaderWidget');
   if (!container) return;
@@ -52,7 +82,6 @@ function updateAuthWidget() {
   }
 }
 
-// Update Trial Banner Counter
 function updateTrialDisplay() {
   const trialInfo = StockiStore.getTrialInfo();
   const trialDaysText = document.getElementById('trialDaysText');
@@ -68,7 +97,6 @@ function updateTrialDisplay() {
   }
 }
 
-// Tab Navigation System
 function switchTab(tabId) {
   document.querySelectorAll('.tab-section').forEach(sec => sec.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
@@ -92,6 +120,37 @@ function switchTab(tabId) {
   if (tabId === 'tab-store') renderMyInventory();
   if (tabId === 'tab-feed') renderFeed();
   if (tabId === 'tab-chat') renderChatList();
+}
+
+// ==========================================================================
+// MEXICAN POSTAL CODE (CP) AUTO-LOOKUP HANDLER
+// ==========================================================================
+
+async function handleCPLookup(val) {
+  const cleanCP = val.replace(/\D/g, '');
+  const box = document.getElementById('cpResultBox');
+  if (!box) return;
+
+  if (cleanCP.length !== 5) {
+    box.style.display = 'none';
+    return;
+  }
+
+  box.style.display = 'block';
+  document.getElementById('regEstado').value = 'Buscando...';
+  document.getElementById('regMunicipio').value = 'Buscando...';
+
+  const res = await StockiCPLookup.lookup(cleanCP);
+  if (res.valid) {
+    document.getElementById('regEstado').value = res.estado;
+    document.getElementById('regMunicipio').value = res.municipio;
+
+    const colSelect = document.getElementById('regColoniaSelect');
+    colSelect.innerHTML = res.colonias.map(c => `<option value="${c}">${c}</option>`).join('');
+  } else {
+    document.getElementById('regEstado').value = 'No encontrado';
+    document.getElementById('regMunicipio').value = 'Revisar CP';
+  }
 }
 
 // ==========================================================================
@@ -133,13 +192,18 @@ async function handleRealRegister(e) {
   const name = document.getElementById('regName').value;
   const phone = document.getElementById('regPhone').value;
   const role = document.getElementById('regRole').value;
-  const colonia = document.getElementById('regColonia').value;
+  const cp = document.getElementById('regCP').value;
+  const estado = document.getElementById('regEstado').value;
+  const municipio = document.getElementById('regMunicipio').value;
+  const colonia = document.getElementById('regColoniaSelect').value;
   const email = document.getElementById('regEmail').value;
   const pass = document.getElementById('regPassword').value;
 
-  const res = await StockiStore.registerUser(email, pass, name, phone, role, colonia);
+  const fullLocation = `Col. ${colonia}, ${municipio}, ${estado} (CP ${cp})`;
+
+  const res = await StockiStore.registerUser(email, pass, name, phone, role, fullLocation);
   if (res.success) {
-    alert(`✨ ¡Felicidades! Tu Tienda Digital "stocki-app.netlify.app/?tienda=${res.profile.store_slug}" ha sido creada exitosamente.`);
+    alert(`✨ ¡Felicidades! Tu Tienda Digital "stocki-app.netlify.app/?tienda=${res.profile.store_slug}" ha sido registrada para ${fullLocation}.`);
     closeModal('authModal');
     updateAuthWidget();
     switchTab('tab-store');
@@ -285,10 +349,6 @@ function filterCategory(btnEl, cat) {
   renderMarketplace();
 }
 
-// ==========================================================================
-// SKU FAST ONBOARDING ADDER
-// ==========================================================================
-
 function previewSkuItem(val) {
   const previewBox = document.getElementById('skuPreviewBox');
   if (!previewBox) return;
@@ -402,10 +462,6 @@ async function deleteStockItem(id) {
     renderRematesCarousel();
   }
 }
-
-// ==========================================================================
-// SELLER PUBLIC STORE VIEW BY SLUG & MERCADO PAGO
-// ==========================================================================
 
 function viewSellerStore(sellerId) {
   const state = StockiStore.getState();
@@ -537,23 +593,13 @@ function openProductDetailModal(inventoryItemId) {
   modal.classList.add('active');
 }
 
-// ==========================================================================
-// MERCADO PAGO INTEGRATION
-// ==========================================================================
-
-function openSubscribeModal() {
-  document.getElementById('subscribeModal')?.classList.add('active');
-}
+function openSubscribeModal() { document.getElementById('subscribeModal')?.classList.add('active'); }
 
 function executeMercadoPagoCheckout() {
   const mpUrl = StockiStore.generateMercadoPagoLink();
   alert('💳 Redirigiendo al checkout seguro de Mercado Pago ($49.00 MXN / mes)...');
   window.open(mpUrl, '_blank');
 }
-
-// ==========================================================================
-// FEED & CHAT HELPERS
-// ==========================================================================
 
 function switchFeedMode(mode) {
   currentFeedMode = mode;
@@ -590,9 +636,7 @@ function renderFeed() {
   `).join('');
 }
 
-function openNewAlertModal() {
-  document.getElementById('newAlertModal')?.classList.add('active');
-}
+function openNewAlertModal() { document.getElementById('newAlertModal')?.classList.add('active'); }
 
 function handleCreateAlert(e) {
   e.preventDefault();
