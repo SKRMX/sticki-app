@@ -615,12 +615,12 @@ function loadProfileSettingsForm() {
     const cpInput = document.getElementById('settingCP');
     if (cpInput) {
       cpInput.value = cpVal;
-      handleSettingCPLookup(cpVal);
+      handleSettingCPLookup(cpVal, colStr);
     }
   }
 }
 
-async function handleSettingCPLookup(val) {
+async function handleSettingCPLookup(val, userColoniaStr = '') {
   const cleanCP = val.replace(/\D/g, '');
   const box = document.getElementById('settingCPBox');
   if (!box) return;
@@ -636,6 +636,15 @@ async function handleSettingCPLookup(val) {
 
     const colSelect = document.getElementById('settingColoniaSelect');
     colSelect.innerHTML = res.colonias.map(c => `<option value="${c}">${c}</option>`).join('');
+
+    // Pre-select matching colonia from user profile
+    const targetStr = userColoniaStr || (StockiStore.getState().currentUser ? StockiStore.getState().currentUser.colonia : '') || '';
+    if (targetStr && res.colonias.length > 0) {
+      const match = res.colonias.find(c => targetStr.toLowerCase().includes(c.toLowerCase()));
+      if (match) {
+        colSelect.value = match;
+      }
+    }
   } else {
     document.getElementById('settingEstado').value = 'México';
     document.getElementById('settingMunicipio').value = 'Zona ' + cleanCP;
@@ -662,7 +671,10 @@ async function handleSaveProfileSettings(e) {
   user.whatsapp = '52' + user.phone;
   user.role = role;
 
-  const idx = state.sellers.findIndex(s => s.id === user.id);
+  const idx = state.sellers.findIndex(s => 
+    s.id === user.id || 
+    (s.email && user.email && s.email.toLowerCase() === user.email.toLowerCase())
+  );
   if (idx !== -1) state.sellers[idx] = user;
 
   StockiStore.saveLocal();
@@ -682,22 +694,31 @@ async function handleSaveLocationSettings(e) {
     return;
   }
 
-  const cp = document.getElementById('settingCP').value;
-  const estado = document.getElementById('settingEstado').value;
-  const municipio = document.getElementById('settingMunicipio').value;
-  const colonia = document.getElementById('settingColoniaSelect').value;
+  const cp = (document.getElementById('settingCP').value || '').trim();
+  const estado = (document.getElementById('settingEstado').value || 'México').trim();
+  const municipio = (document.getElementById('settingMunicipio').value || 'Zona ' + cp).trim();
+  const colSelect = document.getElementById('settingColoniaSelect');
+  const colonia = colSelect && colSelect.value ? colSelect.value : 'Centro';
 
   const fullLoc = `Col. ${colonia}, ${municipio}, ${estado} (CP ${cp})`;
   user.colonia = fullLoc;
 
-  const idx = state.sellers.findIndex(s => s.id === user.id);
-  if (idx !== -1) state.sellers[idx] = user;
+  const idx = state.sellers.findIndex(s => 
+    s.id === user.id || 
+    (s.email && user.email && s.email.toLowerCase() === user.email.toLowerCase())
+  );
+  if (idx !== -1) {
+    state.sellers[idx] = user;
+  } else {
+    state.sellers.push(user);
+  }
 
   StockiStore.saveLocal();
   await StockiStore.syncCloudDB();
 
   showToast('📍 Ubicación de entrega actualizada correctamente.', 'success');
   renderMyInventory();
+  loadProfileSettingsForm();
 }
 
 function switchTab(tabId) {
