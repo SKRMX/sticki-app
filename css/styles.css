@@ -6,21 +6,20 @@
 
 :root {
   /* Brand Palette */
-  --primary: #4F46E5;        /* Vibrant Indigo */
+  --primary: #4F46E5;
   --primary-hover: #4338CA;
   --primary-light: #EEF2FF;
-  --secondary: #0284C7;      /* Cyan / Betterware Blue Accent */
+  --secondary: #0284C7;
   --secondary-light: #E0F2FE;
-  --accent: #10B981;         /* Liquidity Green */
+  --accent: #10B981;
   --accent-light: #ECFDF5;
-  --warning: #F59E0B;        /* Remates / Urgent Amber */
+  --warning: #F59E0B;
   --warning-light: #FEF3C7;
   --danger: #EF4444;
   
-  /* Dark / Light Neutral System */
+  /* Neutral System */
   --bg-main: #F8FAFC;
   --bg-card: #FFFFFF;
-  --bg-glass: rgba(255, 255, 255, 0.85);
   --border-color: #E2E8F0;
   
   --text-main: #0F172A;
@@ -332,11 +331,6 @@ h1, h2, h3, h4, h5, h6 {
   position: relative;
 }
 
-.product-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-}
-
 .product-thumb-wrapper {
   position: relative;
   width: 100%;
@@ -627,9 +621,9 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .modal-handle {
-  width: 38px;
+  width: 42px;
   height: 5px;
-  background: #E2E8F0;
+  background: #CBD5E1;
   border-radius: 99px;
   margin: 0 auto 12px auto;
   display: none;
@@ -766,64 +760,105 @@ h1, h2, h3, h4, h5, h6 {
 
 
 /* ==========================================================================
-   📱 NATIVE OS ADAPTATION MODES (iOS HIG vs Android Material Design 3)
+   🍏 iOS 18/26 LIQUID GLASS DESIGN SYSTEM (Futuristic Glassmorphism)
    ========================================================================== */
 
-/* 🍏 iOS HIG MODE */
 body.os-ios {
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
-  background-color: #F2F2F7;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif;
+  background: linear-gradient(180deg, #E0E7FF 0%, #F1F5F9 100%);
+  color: #1C1C1E;
 }
 
 body.os-ios .app-container {
-  background: #F2F2F7;
+  background: rgba(242, 242, 247, 0.7);
+  backdrop-filter: blur(35px) saturate(210%);
+  -webkit-backdrop-filter: blur(35px) saturate(210%);
+  box-shadow: 0 0 50px rgba(79, 70, 229, 0.12);
 }
 
+/* Liquid Glass Top Header */
 body.os-ios .top-header {
-  background: rgba(249, 249, 249, 0.88);
-  backdrop-filter: blur(25px);
-  border-bottom: 0.5px solid rgba(60, 60, 67, 0.18);
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(30px) saturate(200%);
+  -webkit-backdrop-filter: blur(30px) saturate(200%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.4), 0 4px 20px rgba(0, 0, 0, 0.03);
 }
 
+/* Specular Reflection Liquid Glass Cards */
 body.os-ios .card {
-  border-radius: 18px;
-  border: none;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
-  background: #FFFFFF;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0.5) 100%);
+  backdrop-filter: blur(25px) saturate(190%);
+  -webkit-backdrop-filter: blur(25px) saturate(190%);
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.9), 0 8px 24px rgba(31, 38, 135, 0.06);
 }
 
+/* Liquid Glass Product Cards */
+body.os-ios .product-card {
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(20px);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.9), 0 6px 16px rgba(0, 0, 0, 0.05);
+}
+
+/* Liquid Glass Floating Bottom Navigation */
 body.os-ios .bottom-nav {
-  background: rgba(249, 249, 249, 0.88);
-  backdrop-filter: blur(25px);
-  border-top: 0.5px solid rgba(60, 60, 67, 0.18);
-  height: 72px;
+  background: rgba(255, 255, 255, 0.68);
+  backdrop-filter: blur(35px) saturate(210%);
+  -webkit-backdrop-filter: blur(35px) saturate(210%);
+  border-top: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.9), 0 -10px 30px rgba(0, 0, 0, 0.05);
+  height: 74px;
 }
 
 body.os-ios .nav-item.active {
-  color: #007AFF; /* Apple Native Blue */
+  color: #007AFF;
 }
 
 body.os-ios .nav-item.active svg {
   stroke: #007AFF;
+  filter: drop-shadow(0 2px 6px rgba(0, 122, 255, 0.4));
 }
 
+/* Liquid Glass Primary Button */
 body.os-ios .btn-primary {
-  background: #007AFF;
-  border-radius: 14px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  background: linear-gradient(135deg, #007AFF 0%, #0056B3 100%);
+  border-radius: 16px;
+  font-weight: 700;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.5), 0 4px 14px rgba(0, 122, 255, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
+/* Liquid Glass Modal Sheet */
 body.os-ios .modal-card {
-  border-top-left-radius: 24px;
-  border-top-right-radius: 24px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(40px) saturate(220%);
+  -webkit-backdrop-filter: blur(40px) saturate(220%);
+  border-top-left-radius: 28px;
+  border-top-right-radius: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 1), 0 -15px 40px rgba(0, 0, 0, 0.15);
 }
 
 body.os-ios .modal-handle {
   display: block;
+  background: rgba(60, 60, 67, 0.3);
+  width: 44px;
+  height: 5px;
 }
 
-/* 🤖 ANDROID MATERIAL DESIGN 3 MODE */
+body.os-ios .pill-primary {
+  background: rgba(0, 122, 255, 0.12);
+  color: #007AFF;
+  border: 1px solid rgba(0, 122, 255, 0.2);
+}
+
+/* ==========================================================================
+   🤖 ANDROID MATERIAL DESIGN 3 MODE
+   ========================================================================== */
 body.os-android {
   font-family: 'Roboto', sans-serif;
   background-color: #FEF7FF;
@@ -856,7 +891,7 @@ body.os-android .nav-item.active {
 }
 
 body.os-android .nav-item.active svg {
-  stroke: #6750A4; /* Material 3 Primary Purple */
+  stroke: #6750A4;
   background: #E8DEF8;
   padding: 2px 14px;
   border-radius: 16px;
