@@ -17,7 +17,7 @@ if (typeof supabase !== 'undefined' && SUPABASE_URL && !SUPABASE_URL.includes('T
 }
 
 (function () {
-  const STORAGE_KEY = 'mystocki_app_real_state_v10';
+  const STORAGE_KEY = 'mystocki_app_real_state_v11';
 
   const SUPER_ADMIN_PROFILE = {
     id: 'usr_superadmin_01',
@@ -52,10 +52,17 @@ if (typeof supabase !== 'undefined' && SUPABASE_URL && !SUPABASE_URL.includes('T
     return em.includes('analuisa') || em.includes('betterware.com') || fn.includes('ana luisa') || id === 'usr_vendedora_02';
   }
 
+  function getSellerKey(s) {
+    if (!s) return '';
+    if (s.email && s.email.trim()) return s.email.trim().toLowerCase();
+    if (s.associate_code && String(s.associate_code).trim()) return 'code_' + String(s.associate_code).trim().toLowerCase();
+    return s.id || '';
+  }
+
   function loadLocal() {
     try {
       // Clear legacy storage keys
-      for (let i = 1; i <= 9; i++) {
+      for (let i = 1; i <= 10; i++) {
         localStorage.removeItem('mystocki_app_real_state_v' + i);
       }
 
@@ -84,7 +91,7 @@ if (typeof supabase !== 'undefined' && SUPABASE_URL && !SUPABASE_URL.includes('T
   }
 
   // ==========================================================================
-  // REAL-TIME GLOBAL CLOUD PERSISTENCE ENGINE (BIDIRECTIONAL SYNC)
+  // REAL-TIME GLOBAL CLOUD PERSISTENCE ENGINE (BIDIRECTIONAL SYNC + DEDUPLICATION)
   // ==========================================================================
 
   async function syncCloudDB() {
@@ -98,34 +105,36 @@ if (typeof supabase !== 'undefined' && SUPABASE_URL && !SUPABASE_URL.includes('T
 
       const sellerMap = new Map();
 
-      // First load cloudData sellers into map
+      // First load cloudData sellers into map (deduplicating by email)
       (cloudData.sellers || []).forEach(s => {
         if (!isDummyUser(s)) {
-          const key = (s.id || s.email).toLowerCase();
-          sellerMap.set(key, s);
+          const key = getSellerKey(s);
+          if (key) sellerMap.set(key, s);
         }
       });
 
-      // Override / merge with local state sellers (newest local edits win + bonus days merge)
+      // Merge with local state sellers (newest local edits win + subscription status merge)
       (state.sellers || []).forEach(s => {
         if (!isDummyUser(s)) {
-          const key = (s.id || s.email).toLowerCase();
-          const cloudSeller = sellerMap.get(key) || {};
-          
-          const merged = {
-            ...cloudSeller,
-            ...s,
-            trial_days_added: Math.max(s.trial_days_added || 0, cloudSeller.trial_days_added || 0),
-            is_subscribed: s.is_subscribed || cloudSeller.is_subscribed || false,
-            discount_applied: s.discount_applied || cloudSeller.discount_applied || false
-          };
-          sellerMap.set(key, merged);
+          const key = getSellerKey(s);
+          if (key) {
+            const cloudSeller = sellerMap.get(key) || {};
+            const merged = {
+              ...cloudSeller,
+              ...s,
+              id: cloudSeller.id || s.id,
+              trial_days_added: Math.max(s.trial_days_added || 0, cloudSeller.trial_days_added || 0),
+              is_subscribed: s.is_subscribed || cloudSeller.is_subscribed || false,
+              discount_applied: s.discount_applied || cloudSeller.discount_applied || false
+            };
+            sellerMap.set(key, merged);
+          }
         }
       });
 
       // Update state.currentUser if logged in
       if (state.currentUser) {
-        const userKey = (state.currentUser.id || state.currentUser.email).toLowerCase();
+        const userKey = getSellerKey(state.currentUser);
         const syncedUser = sellerMap.get(userKey);
         if (syncedUser) {
           state.currentUser = {
