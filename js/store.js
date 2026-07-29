@@ -17,7 +17,7 @@ if (typeof supabase !== 'undefined' && SUPABASE_URL && !SUPABASE_URL.includes('T
 }
 
 (function () {
-  const STORAGE_KEY = 'mystocki_app_real_state_v8';
+  const STORAGE_KEY = 'mystocki_app_real_state_v9';
 
   const SUPER_ADMIN_PROFILE = {
     id: 'usr_superadmin_01',
@@ -54,8 +54,8 @@ if (typeof supabase !== 'undefined' && SUPABASE_URL && !SUPABASE_URL.includes('T
 
   function loadLocal() {
     try {
-      // Clear all legacy storage keys
-      for (let i = 1; i <= 7; i++) {
+      // Clear legacy storage keys
+      for (let i = 1; i <= 8; i++) {
         localStorage.removeItem('mystocki_app_real_state_v' + i);
       }
 
@@ -145,16 +145,33 @@ if (typeof supabase !== 'undefined' && SUPABASE_URL && !SUPABASE_URL.includes('T
     }
   }
 
+  // Session persistence handler: NEVER log out user or SuperAdmin on page refresh
   async function checkActiveSession() {
+    if (state.currentUser) {
+      return state.currentUser;
+    }
+
     if (supabaseClient) {
       try {
         const { data: { session } } = await supabaseClient.auth.getSession();
         if (session && session.user) {
-          const { data: prof } = await supabaseClient.from('profiles').select('*').eq('id', session.user.id).single();
-          if (prof) {
-            state.currentUser = prof;
-            saveLocal();
-          }
+          const meta = session.user.user_metadata || {};
+          const prof = {
+            id: session.user.id,
+            full_name: meta.full_name || session.user.email.split('@')[0],
+            email: session.user.email.toLowerCase(),
+            phone: meta.phone || '',
+            associate_code: meta.associate_code || '',
+            role: meta.role || 'asociada',
+            colonia: meta.colonia || 'México',
+            whatsapp: meta.phone ? '52' + meta.phone : '',
+            store_slug: (meta.full_name || 'vendedora').toLowerCase().replace(/[^a-z0-9]/g, '-') + '-' + session.user.id.slice(0, 4),
+            rating: 5.0,
+            verified: true,
+            is_subscribed: false
+          };
+          state.currentUser = prof;
+          saveLocal();
         }
       } catch (e) { console.warn(e); }
     }
@@ -162,7 +179,7 @@ if (typeof supabase !== 'undefined' && SUPABASE_URL && !SUPABASE_URL.includes('T
   }
 
   // ==========================================================================
-  // REAL SUPABASE AUTH & ANTI-ABUSE REGISTRATION
+  // REAL SUPABASE AUTH & REGISTRATION
   // ==========================================================================
 
   async function registerUser(email, password, fullName, phone, associateCode, role, locationStr) {
@@ -211,7 +228,7 @@ if (typeof supabase !== 'undefined' && SUPABASE_URL && !SUPABASE_URL.includes('T
         await supabaseClient.auth.signUp({
           email: cleanEmail,
           password,
-          options: { data: { full_name: fullName, associate_code: cleanAssocCode } }
+          options: { data: { full_name: fullName, associate_code: cleanAssocCode, phone: cleanPhone, role: role || 'asociada', colonia: locationStr } }
         });
       } catch (e) { console.warn(e); }
     }
@@ -239,12 +256,33 @@ if (typeof supabase !== 'undefined' && SUPABASE_URL && !SUPABASE_URL.includes('T
 
     if (supabaseClient) {
       try {
-        const { data } = await supabaseClient.auth.signInWithPassword({ email: cleanEmail, password });
+        const { data, error } = await supabaseClient.auth.signInWithPassword({ email: cleanEmail, password });
         if (data && data.user) {
-          const { data: prof } = await supabaseClient.from('profiles').select('*').eq('id', data.user.id).single();
-          state.currentUser = prof || { id: data.user.id, full_name: cleanEmail.split('@')[0], role: 'asociada' };
+          const meta = data.user.user_metadata || {};
+          const prof = {
+            id: data.user.id,
+            full_name: meta.full_name || cleanEmail.split('@')[0],
+            email: cleanEmail,
+            phone: meta.phone || '',
+            associate_code: meta.associate_code || '',
+            role: meta.role || 'asociada',
+            colonia: meta.colonia || 'México',
+            whatsapp: meta.phone ? '52' + meta.phone : '',
+            store_slug: (meta.full_name || 'vendedora').toLowerCase().replace(/[^a-z0-9]/g, '-') + '-' + data.user.id.slice(0, 4),
+            rating: 5.0,
+            verified: true,
+            is_subscribed: false
+          };
+          state.currentUser = prof;
+          const existingIdx = state.sellers.findIndex(s => s.id === prof.id || s.email.toLowerCase() === cleanEmail);
+          if (existingIdx !== -1) {
+            state.sellers[existingIdx] = prof;
+          } else {
+            state.sellers.push(prof);
+          }
           saveLocal();
-          return { success: true, profile: state.currentUser };
+          await syncCloudDB();
+          return { success: true, profile: prof };
         }
       } catch (e) { console.warn(e); }
     }
