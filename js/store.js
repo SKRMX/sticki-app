@@ -17,7 +17,7 @@ if (typeof supabase !== 'undefined' && SUPABASE_URL && !SUPABASE_URL.includes('T
 }
 
 (function () {
-  const STORAGE_KEY = 'mystocki_app_real_state_v6';
+  const STORAGE_KEY = 'mystocki_app_real_state_v7';
 
   const SUPER_ADMIN_PROFILE = {
     id: 'usr_superadmin_01',
