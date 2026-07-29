@@ -1,11 +1,11 @@
 /* ==========================================================================
-   Stocki / RedStock App - Mobile-First Design System & Native OS Adaptability
+   MyStocki (mystocki.com) - Mobile-First Design System & Native OS Adaptability
    ========================================================================== */
 
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap');
 
 :root {
-  /* Brand Palette */
+  /* Brand Palette - MyStocki */
   --primary: #4F46E5;
   --primary-hover: #4338CA;
   --primary-light: #EEF2FF;
@@ -96,43 +96,73 @@ h1, h2, h3, h4, h5, h6 {
   justify-content: space-between;
 }
 
+/* ==========================================================================
+   ✨ MYSTOCKI BRAND LOGO & BADGE SYSTEM
+   ========================================================================== */
+
 .brand-logo {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   text-decoration: none;
 }
 
 .brand-icon {
-  width: 36px;
-  height: 36px;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-  border-radius: var(--radius-sm);
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #4F46E5 0%, #0284C7 50%, #10B981 100%);
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-  font-weight: 800;
-  font-size: 18px;
-  box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);
+  font-weight: 900;
+  font-size: 20px;
+  font-family: 'Outfit', sans-serif;
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.brand-icon::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent 45%, rgba(255,255,255,0.4) 50%, transparent 55%);
+  animation: shine 4s infinite;
+}
+
+@keyframes shine {
+  0% { transform: translateX(-100%) rotate(45deg); }
+  20% { transform: translateX(100%) rotate(45deg); }
+  100% { transform: translateX(100%) rotate(45deg); }
 }
 
 .brand-name {
-  font-size: 20px;
-  font-weight: 800;
-  background: linear-gradient(135deg, #1E1B4B 0%, var(--primary) 100%);
+  font-size: 22px;
+  font-weight: 900;
+  font-family: 'Outfit', sans-serif;
+  letter-spacing: -0.03em;
+  background: linear-gradient(135deg, #1E1B4B 0%, #4F46E5 60%, #0284C7 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  line-height: 1;
 }
 
 .brand-badge {
-  font-size: 10px;
-  font-weight: 700;
-  background: var(--secondary-light);
-  color: var(--secondary);
-  padding: 2px 8px;
+  font-size: 9px;
+  font-weight: 800;
+  background: linear-gradient(90deg, #EEF2FF 0%, #E0F2FE 100%);
+  color: var(--primary);
+  border: 1px solid rgba(79, 70, 229, 0.2);
+  padding: 2px 7px;
   border-radius: var(--radius-full);
   text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 /* Trial Banner (20 Days Free) */
@@ -758,7 +788,6 @@ h1, h2, h3, h4, h5, h6 {
 .pill-accent { background: var(--accent-light); color: var(--accent); }
 .pill-warning { background: var(--warning-light); color: var(--warning); }
 
-
 /* ==========================================================================
    🍞 NATIVE TOAST NOTIFICATIONS SYSTEM
    ========================================================================== */
@@ -795,26 +824,17 @@ h1, h2, h3, h4, h5, h6 {
   transition: var(--transition);
 }
 
-.toast.toast-error {
-  border-left: 4px solid var(--danger);
-}
-
-.toast.toast-success {
-  border-left: 4px solid var(--accent);
-}
-
-.toast.toast-info {
-  border-left: 4px solid var(--secondary);
-}
+.toast.toast-error { border-left: 4px solid var(--danger); }
+.toast.toast-success { border-left: 4px solid var(--accent); }
+.toast.toast-info { border-left: 4px solid var(--secondary); }
 
 @keyframes toastIn {
   from { opacity: 0; transform: translateY(-20px) scale(0.95); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-
 /* ==========================================================================
-   🍏 iOS 18/26 LIQUID GLASS DESIGN SYSTEM (Futuristic Glassmorphism)
+   🍏 iOS 18/26 LIQUID GLASS DESIGN SYSTEM
    ========================================================================== */
 
 body.os-ios {
@@ -864,10 +884,7 @@ body.os-ios .bottom-nav {
   height: 74px;
 }
 
-body.os-ios .nav-item.active {
-  color: #007AFF;
-}
-
+body.os-ios .nav-item.active { color: #007AFF; }
 body.os-ios .nav-item.active svg {
   stroke: #007AFF;
   filter: drop-shadow(0 2px 6px rgba(0, 122, 255, 0.4));
@@ -912,41 +929,10 @@ body.os-android {
   background-color: #FEF7FF;
 }
 
-body.os-android .app-container {
-  background: #FEF7FF;
-}
-
-body.os-android .top-header {
-  background: #F3EDF7;
-  border-bottom: 1px solid #E7E0EC;
-}
-
-body.os-android .card {
-  border-radius: 16px;
-  border: 1px solid #E7E0EC;
-  background: #FFFFFF;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-}
-
-body.os-android .bottom-nav {
-  background: #F3EDF7;
-  border-top: 1px solid #E7E0EC;
-  height: 72px;
-}
-
-body.os-android .nav-item.active {
-  color: #1D192B;
-}
-
-body.os-android .nav-item.active svg {
-  stroke: #6750A4;
-  background: #E8DEF8;
-  padding: 2px 14px;
-  border-radius: 16px;
-}
-
-body.os-android .btn-primary {
-  background: #6750A4;
-  border-radius: 24px;
-  font-weight: 600;
-}
+body.os-android .app-container { background: #FEF7FF; }
+body.os-android .top-header { background: #F3EDF7; border-bottom: 1px solid #E7E0EC; }
+body.os-android .card { border-radius: 16px; border: 1px solid #E7E0EC; background: #FFFFFF; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+body.os-android .bottom-nav { background: #F3EDF7; border-top: 1px solid #E7E0EC; height: 72px; }
+body.os-android .nav-item.active { color: #1D192B; }
+body.os-android .nav-item.active svg { stroke: #6750A4; background: #E8DEF8; padding: 2px 14px; border-radius: 16px; }
+body.os-android .btn-primary { background: #6750A4; border-radius: 24px; font-weight: 600; }
