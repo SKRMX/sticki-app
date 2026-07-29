@@ -14,8 +14,8 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-  <!-- CSS Stylesheets -->
-  <link rel="stylesheet" href="css/styles.css">
+  <!-- CSS Stylesheets (Cache Busted v=2) -->
+  <link rel="stylesheet" href="css/styles.css?v=2">
   
   <!-- Supabase JS Client & Mercado Pago SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -32,7 +32,7 @@
       <img src="assets/icon.png" alt="MyStocki App" class="pwa-banner-icon">
       <div style="flex: 1;">
         <div style="font-size: 13px; font-weight: 800;">📲 Instalar App MyStocki</div>
-        <div style="font-size: 11px; color: #C7D2FE; id='pwaBannerDesc'">Añade acceso directo a tu pantalla de inicio.</div>
+        <div style="font-size: 11px; color: #C7D2FE;" id="pwaBannerDesc">Añade acceso directo a tu pantalla de inicio.</div>
       </div>
       <button id="btnPwaInstallAction" class="btn-primary" style="width: auto; padding: 6px 12px; font-size: 11px; background: #10B981;" onclick="triggerPwaInstall()">Instalar</button>
       <button style="background: transparent; border: none; color: #94A3B8; font-size: 16px; margin-left: 4px; cursor: pointer;" onclick="closePwaBanner()">✕</button>
@@ -357,7 +357,7 @@
 
     </main>
 
-    <!-- Bottom Navigation Bar (Mobile Native Look with Safe Area Pad) -->
+    <!-- Bottom Navigation Bar (Mobile Native Look) -->
     <nav class="bottom-nav">
       <button class="nav-item active" onclick="switchTab('tab-search')">
         <svg viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
@@ -726,10 +726,10 @@
     </div>
   </div>
 
-  <!-- JavaScript Modules -->
-  <script src="js/catalog_data.js"></script>
-  <script src="js/store.js"></script>
-  <script src="js/cp_lookup.js"></script>
-  <script src="js/app.js"></script>
+  <!-- JavaScript Modules (Cache Busted v=2) -->
+  <script src="js/catalog_data.js?v=2"></script>
+  <script src="js/store.js?v=2"></script>
+  <script src="js/cp_lookup.js?v=2"></script>
+  <script src="js/app.js?v=2"></script>
 </body>
 </html>

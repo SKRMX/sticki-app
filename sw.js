@@ -1,33 +1,42 @@
-/* Service Worker for MyStocki PWA Installation */
-const CACHE_NAME = 'mystocki-v1';
-const urlsToCache = [
-  './',
-  './index.html',
-  './css/styles.css',
-  './js/app.js',
-  './js/store.js',
-  './js/cp_lookup.js',
-  './js/catalog_data.js',
-  './assets/logo.png',
-  './assets/icon.png',
-  './manifest.json'
-];
+/* Service Worker for MyStocki PWA Installation & Auto-Update Engine */
+const CACHE_NAME = 'mystocki-v2-' + Date.now();
 
 self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
-  );
   self.skipWaiting();
 });
 
 self.addEventListener('activate', event => {
-  event.waitUntil(clients.claim());
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cache => {
+          if (cache !== CACHE_NAME) {
+            console.log('🧹 Limpiando caché antigua del navegador:', cache);
+            return caches.delete(cache);
+          }
+        })
+      );
+    }).then(() => self.clients.claim())
+  );
 });
 
+// Network First Strategy for Fresh Code Delivery
 self.addEventListener('fetch', event => {
+  if (event.request.method !== 'GET') return;
+
   event.respondWith(
-    caches.match(event.request).then(response => {
-      return response || fetch(event.request);
-    })
+    fetch(event.request)
+      .then(networkResponse => {
+        if (networkResponse && networkResponse.status === 200) {
+          const responseToCache = networkResponse.clone();
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(event.request, responseToCache);
+          });
+        }
+        return networkResponse;
+      })
+      .catch(() => {
+        return caches.match(event.request);
+      })
   );
 });
