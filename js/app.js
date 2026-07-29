@@ -902,7 +902,11 @@ function renderMarketplace() {
   let results = [];
 
   state.inventory.forEach(invItem => {
-    const seller = state.sellers.find(s => s.id === invItem.seller_id) || {
+    const seller = state.sellers.find(s => 
+      s.id === invItem.seller_id || 
+      (invItem.seller_email && s.email && invItem.seller_email.toLowerCase() === s.email.toLowerCase()) ||
+      (s.supabase_id && invItem.seller_id === s.supabase_id)
+    ) || {
       full_name: 'Vendedora Registrada',
       colonia: 'México',
       distanceKm: 1.0
@@ -1096,7 +1100,11 @@ function renderMyInventory() {
 
   updateTrialDisplay();
 
-  const items = state.inventory.filter(i => i.seller_id === user.id);
+  const items = state.inventory.filter(i => 
+    i.seller_id === user.id || 
+    (i.seller_email && user.email && i.seller_email.toLowerCase() === user.email.toLowerCase()) ||
+    (user.supabase_id && i.seller_id === user.supabase_id)
+  );
 
   const statCount = document.getElementById('statItemCount');
   const statRating = document.getElementById('statRating');

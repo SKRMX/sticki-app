@@ -360,14 +360,15 @@ if (typeof supabase !== 'undefined' && SUPABASE_URL && !SUPABASE_URL.includes('T
       return { success: false, message: 'Debes iniciar sesión para agregar productos a tu tienda.' };
     }
 
-    const currentSellerId = state.currentUser.id;
     const newItem = {
-      id: 'inv_' + Date.now(),
-      seller_id: currentSellerId,
+      id: 'inv_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+      seller_id: state.currentUser.id,
+      seller_email: (state.currentUser.email || '').toLowerCase(),
       sku: cleanSku,
       qty: parseInt(qty, 10),
       is_remate: !!isRemate,
-      remate_price: rematePrice ? parseFloat(rematePrice) : null
+      remate_price: rematePrice ? parseFloat(rematePrice) : null,
+      created_at: new Date().toISOString()
     };
 
     state.inventory.push(newItem);
