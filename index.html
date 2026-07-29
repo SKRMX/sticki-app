@@ -279,7 +279,7 @@
 
   <!-- MODALS -->
 
-  <!-- Modal 1: Supabase Real Auth (Login / Register with CP Auto-Lookup) -->
+  <!-- Modal 1: Supabase Real Auth (Login / Register with Mandatory Anti-Abuse Checks) -->
   <div id="authModal" class="modal-overlay" onclick="closeModalOnOverlay(event, 'authModal')">
     <div class="modal-card">
       <div class="modal-handle"></div>
@@ -296,30 +296,38 @@
       <!-- Login Form -->
       <form id="loginForm" onsubmit="handleRealLogin(event)">
         <div class="form-group">
-          <label class="form-label">Correo Electrónico</label>
+          <label class="form-label">Correo Electrónico *</label>
           <input type="email" id="loginEmail" class="input-control" placeholder="vendedora@betterware.com" required>
         </div>
         <div class="form-group">
-          <label class="form-label">Contraseña</label>
+          <label class="form-label">Contraseña *</label>
           <input type="password" id="loginPassword" class="input-control" placeholder="••••••••" required>
         </div>
         <button type="submit" class="btn-primary">Iniciar Sesión</button>
       </form>
 
-      <!-- Register Form with CP Lookup -->
+      <!-- Register Form with Mandatory Security Fields & CP Instant Lookup -->
       <form id="registerForm" style="display: none;" onsubmit="handleRealRegister(event)">
+        
         <div class="form-group">
-          <label class="form-label">Nombre Completo</label>
+          <label class="form-label">Nombre Completo *</label>
           <input type="text" id="regName" class="input-control" placeholder="Ej. Ana Luisa Martínez" required>
+        </div>
+
+        <!-- MANDATORY ANTI-ABUSE BETTERWARE ASSOCIATE CODE -->
+        <div class="form-group" style="background: #EEF2FF; padding: 10px; border-radius: var(--radius-sm); border: 1px solid #C7D2FE;">
+          <label class="form-label" style="color: var(--primary);">🔒 Código de Asociada / Distribuidora Betterware *</label>
+          <input type="text" id="regAssociateCode" class="input-control" placeholder="Ej. 12345678" required style="font-weight: 800; letter-spacing: 0.05em;">
+          <span style="font-size: 10px; color: var(--text-muted); display: block; margin-top: 4px;">Único por vendedora. Requerido para validar tu identidad de Betterware y activar tus 20 días gratis.</span>
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
           <div class="form-group">
-            <label class="form-label">WhatsApp (10 dígitos)</label>
-            <input type="tel" id="regPhone" class="input-control" placeholder="5512345678" required>
+            <label class="form-label">Teléfono WhatsApp *</label>
+            <input type="tel" id="regPhone" class="input-control" placeholder="5512345678" maxlength="10" required>
           </div>
           <div class="form-group">
-            <label class="form-label">Rol en Betterware</label>
+            <label class="form-label">Rol Betterware *</label>
             <select id="regRole" class="input-control">
               <option value="asociada">Asociada</option>
               <option value="lider">Distribuidora / Líder</option>
@@ -327,9 +335,9 @@
           </div>
         </div>
 
-        <!-- CÓDIGO POSTAL AUTO-LOOKUP SECTION -->
+        <!-- CÓDIGO POSTAL INSTANT AUTO-LOOKUP SECTION -->
         <div style="background: #F8FAFC; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 14px;">
-          <div style="font-size: 11px; font-weight: 800; color: var(--primary); margin-bottom: 6px; text-transform: uppercase;">📍 Ubicación Precisa por Código Postal (CP)</div>
+          <div style="font-size: 11px; font-weight: 800; color: var(--primary); margin-bottom: 6px; text-transform: uppercase;">📍 Ubicación Precisa por Código Postal (CP) *</div>
           
           <div class="form-group" style="margin-bottom: 10px;">
             <label class="form-label">Código Postal (5 dígitos)</label>
@@ -349,23 +357,23 @@
             </div>
 
             <div class="form-group" style="margin-bottom: 0;">
-              <label class="form-label">Selecciona tu Colonia</label>
+              <label class="form-label">Selecciona tu Colonia *</label>
               <select id="regColoniaSelect" class="input-control" required style="font-weight: 600;">
-                <!-- Filled dynamically by CP lookup -->
+                <!-- Filled dynamically by instant CP lookup -->
               </select>
             </div>
           </div>
         </div>
 
         <div class="form-group">
-          <label class="form-label">Correo Electrónico</label>
+          <label class="form-label">Correo Electrónico (Confirmación Resend) *</label>
           <input type="email" id="regEmail" class="input-control" placeholder="tu@correo.com" required>
         </div>
         <div class="form-group">
-          <label class="form-label">Contraseña</label>
+          <label class="form-label">Contraseña *</label>
           <input type="password" id="regPassword" class="input-control" placeholder="••••••••" required>
         </div>
-        <button type="submit" class="btn-primary">Registrar mi Tienda Digital</button>
+        <button type="submit" class="btn-primary">Registrar mi Tienda Digital & Validar Correo</button>
       </form>
     </div>
   </div>
