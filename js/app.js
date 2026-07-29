@@ -582,21 +582,41 @@ function updateAuthWidget() {
 
 function updateTrialDisplay() {
   const trialInfo = StockiStore.getTrialInfo();
+  const trialBanner = document.getElementById('trialBanner');
   const trialDaysText = document.getElementById('trialDaysText');
   const profileTrialCountdown = document.getElementById('profileTrialCountdown');
   const profileBonusDaysInfo = document.getElementById('profileBonusDaysInfo');
+  const trialBoxContainer = document.getElementById('trialBoxContainer');
+  const paymentActionBox = document.getElementById('paymentActionBox');
+  const activeSubBox = document.getElementById('activeSubBox');
+  const profileSubStatusBadge = document.getElementById('profileSubStatusBadge');
   const state = StockiStore.getState();
 
   if (!state.currentUser) {
+    if (trialBanner) trialBanner.style.display = 'flex';
     if (trialDaysText) trialDaysText.textContent = '20 Días Gratis para Vendedoras';
     if (profileTrialCountdown) profileTrialCountdown.textContent = '20 Días Prueba Gratis';
+    if (trialBoxContainer) trialBoxContainer.style.display = 'block';
+    if (paymentActionBox) paymentActionBox.style.display = 'block';
+    if (activeSubBox) activeSubBox.style.display = 'none';
+    if (profileSubStatusBadge) profileSubStatusBadge.style.display = 'none';
     return;
   }
 
   if (trialInfo.isSubscribed) {
-    if (trialDaysText) trialDaysText.textContent = '⭐ SUSCRIPCIÓN ACTIVA MERCADO PAGO';
-    if (profileTrialCountdown) profileTrialCountdown.textContent = 'Suscripción Activa ($49/mes)';
+    // Hide ALL payment prompt banners across the app when subscribed!
+    if (trialBanner) trialBanner.style.display = 'none';
+    if (trialBoxContainer) trialBoxContainer.style.display = 'none';
+    if (paymentActionBox) paymentActionBox.style.display = 'none';
+    if (activeSubBox) activeSubBox.style.display = 'block';
+    if (profileSubStatusBadge) profileSubStatusBadge.style.display = 'inline-flex';
   } else {
+    if (trialBanner) trialBanner.style.display = 'flex';
+    if (trialBoxContainer) trialBoxContainer.style.display = 'block';
+    if (paymentActionBox) paymentActionBox.style.display = 'block';
+    if (activeSubBox) activeSubBox.style.display = 'none';
+    if (profileSubStatusBadge) profileSubStatusBadge.style.display = 'none';
+
     const bonus = state.currentUser.trial_days_added || 0;
     const text = `Quedan ${trialInfo.daysLeft} días gratis`;
     if (trialDaysText) trialDaysText.textContent = text;

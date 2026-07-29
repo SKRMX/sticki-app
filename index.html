@@ -14,8 +14,8 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-  <!-- CSS Stylesheets (Cache Busted v=8) -->
-  <link rel="stylesheet" href="css/styles.css?v=8">
+  <!-- CSS Stylesheets (Cache Busted v=9) -->
+  <link rel="stylesheet" href="css/styles.css?v=9">
   
   <!-- Supabase JS Client & Mercado Pago SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -423,21 +423,28 @@
         </div>
 
         <!-- CARD 3: SUSCRIPCIÓN & DÍAS GRATIS -->
-        <div class="card">
+        <div class="card" id="profileSubscriptionCard">
           <div class="card-title">
-            <span>💎 Estado de Suscripción & Días Gratis</span>
+            <span>💎 Estado de Suscripción</span>
+            <span class="pill pill-success" id="profileSubStatusBadge" style="display: none; background: #10B981; color: white;">⭐ PAGADO</span>
           </div>
           
-          <div style="background: linear-gradient(135deg, #EEF2FF 0%, #E0F2FE 100%); padding: 16px; border-radius: var(--radius-md); border: 1px solid #C7D2FE; margin-bottom: 14px;">
+          <div id="trialBoxContainer" style="background: linear-gradient(135deg, #EEF2FF 0%, #E0F2FE 100%); padding: 16px; border-radius: var(--radius-md); border: 1px solid #C7D2FE; margin-bottom: 14px;">
             <div style="font-size: 12px; font-weight: 700; color: var(--primary); text-transform: uppercase; margin-bottom: 4px;">DÍAS DE PRUEBA Y REGALOS SUPERADMIN</div>
             <div style="font-size: 24px; font-weight: 800; color: var(--text-main);" id="profileTrialCountdown">Quedan 20 días gratis</div>
             <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;" id="profileBonusDaysInfo">Incluye los regalos de meses gratis activados por el SuperAdmin.</div>
           </div>
 
-          <div style="border-top: 1px solid var(--border-color); padding-top: 14px; margin-top: 14px;">
+          <div id="paymentActionBox" style="border-top: 1px solid var(--border-color); padding-top: 14px; margin-top: 14px;">
             <div style="font-size: 14px; font-weight: 700; margin-bottom: 6px;">Suscripción Ilimitada Mercado Pago</div>
             <div style="font-size: 24px; font-weight: 800; color: var(--primary); margin-bottom: 12px;">$49 MXN <span style="font-size: 14px; font-weight: 500; color: var(--text-muted);">/ mes</span></div>
             <button class="btn-primary" onclick="openSubscribeModal()">💳 Pagar $49 MXN con Mercado Pago</button>
+          </div>
+
+          <div id="activeSubBox" style="display: none; background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%); padding: 16px; border-radius: var(--radius-md); border: 1px solid #A7F3D0;">
+            <div style="font-size: 14px; font-weight: 800; color: #065F46; margin-bottom: 4px;">⭐ SUSCRIPCIÓN ILIMITADA ACTIVA</div>
+            <div style="font-size: 13px; color: #047857;">Tu cuenta cuenta con acceso completo e ilimitado a tu tienda digital, buscador de traspasos e inventario.</div>
+            <div style="font-size: 12px; font-weight: 700; color: #059669; margin-top: 8px;">Cobro mensual: $49.00 MXN vía Mercado Pago</div>
           </div>
         </div>
 
@@ -863,10 +870,10 @@
     </div>
   </div>
 
-  <!-- JavaScript Modules (Cache Busted v=8) -->
-  <script src="js/catalog_data.js?v=8"></script>
-  <script src="js/store.js?v=8"></script>
-  <script src="js/cp_lookup.js?v=8"></script>
-  <script src="js/app.js?v=8"></script>
+  <!-- JavaScript Modules (Cache Busted v=9) -->
+  <script src="js/catalog_data.js?v=9"></script>
+  <script src="js/store.js?v=9"></script>
+  <script src="js/cp_lookup.js?v=9"></script>
+  <script src="js/app.js?v=9"></script>
 </body>
 </html>
