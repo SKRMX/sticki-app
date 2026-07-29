@@ -29,7 +29,6 @@ function initPwaInstaller() {
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
 
   if (isStandalone) {
-    // App is already installed and running as native PWA
     return;
   }
 
@@ -79,6 +78,36 @@ function closePwaBanner() {
 // 👑 EXECUTIVE SUPERADMIN CONTROL CENTER (jmcv2212@gmail.com Exclusivo)
 // ==========================================================================
 
+async function handleAdminSyncCloud() {
+  showToast('⚡ Sincronizando usuarias y base de datos en la nube...', 'info');
+  const res = await StockiStore.syncCloudDB();
+  renderAdminMetricsAndUsers();
+  const count = (res.sellers || []).filter(s => s.email.toLowerCase() !== StockiStore.SUPER_ADMIN_EMAIL.toLowerCase()).length;
+  showToast(`✅ Sincronización exitosa. Se encontraron ${count} usuarias registradas en la nube.`, 'success');
+}
+
+function openAdminNewUserModal() {
+  document.getElementById('adminNewUserModal')?.classList.add('active');
+}
+
+async function handleAdminRegisterUser(e) {
+  e.preventDefault();
+  const name = document.getElementById('adminRegName').value;
+  const code = document.getElementById('adminRegCode').value;
+  const phone = document.getElementById('adminRegPhone').value;
+  const email = document.getElementById('adminRegEmail').value;
+  const colonia = document.getElementById('adminRegColonia').value;
+
+  const res = await StockiStore.registerUser(email, 'Pass1234!', name, phone, code, 'asociada', colonia);
+  if (res.success) {
+    showToast(`✅ Vendedora ${name} dada de alta y sincronizada en la nube.`, 'success');
+    closeModal('adminNewUserModal');
+    renderAdminMetricsAndUsers();
+  } else {
+    showToast(`Error: ${res.message}`, 'error');
+  }
+}
+
 function switchAdminTab(tabName) {
   document.getElementById('adminSecDashboard').style.display = tabName === 'dashboard' ? 'block' : 'none';
   document.getElementById('adminSecCatalog').style.display = tabName === 'catalog' ? 'block' : 'none';
@@ -111,7 +140,7 @@ function renderAdminMetricsAndUsers() {
   if (!metricsContainer || !userTableContainer) return;
 
   const state = StockiStore.getState();
-  const sellers = (state.sellers || []).filter(s => s.email !== StockiStore.SUPER_ADMIN_EMAIL);
+  const sellers = (state.sellers || []).filter(s => s.email.toLowerCase() !== StockiStore.SUPER_ADMIN_EMAIL.toLowerCase());
   const inventory = state.inventory || [];
 
   const totalUsers = sellers.length;
@@ -124,7 +153,7 @@ function renderAdminMetricsAndUsers() {
       <div style="background: linear-gradient(135deg, #1E1B4B 0%, #312E81 100%); color: white; padding: 18px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.1);">
         <div style="font-size: 11px; color: #C7D2FE; text-transform: uppercase; font-weight: 800;">Usuarias Registradas</div>
         <div style="font-size: 32px; font-weight: 900; color: white; margin: 4px 0;">${totalUsers}</div>
-        <div style="font-size: 11px; color: #94A3B8;">Vendedoras activas</div>
+        <div style="font-size: 11px; color: #94A3B8;">Vendedoras en la nube</div>
       </div>
 
       <div style="background: linear-gradient(135deg, #065F46 0%, #047857 100%); color: white; padding: 18px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.1);">
@@ -148,7 +177,7 @@ function renderAdminMetricsAndUsers() {
   `;
 
   userTableContainer.innerHTML = sellers.length === 0 ? 
-    '<p style="font-size: 13px; color: #94A3B8; text-align: center; padding: 30px;">No hay vendedoras registradas en la plataforma por el momento.</p>' :
+    '<p style="font-size: 13px; color: #94A3B8; text-align: center; padding: 30px;">No hay vendedoras registradas en la plataforma por el momento. Haz clic en "Sincronizar Usuarias en Vivo" arriba.</p>' :
     sellers.map(s => renderAdminUserRow(s)).join('');
 }
 
@@ -181,7 +210,7 @@ function filterAdminUserTable(query) {
   const q = query.toLowerCase().trim();
   const state = StockiStore.getState();
   const filtered = state.sellers.filter(s => 
-    s.email !== StockiStore.SUPER_ADMIN_EMAIL &&
+    s.email.toLowerCase() !== StockiStore.SUPER_ADMIN_EMAIL.toLowerCase() &&
     ((s.full_name || '').toLowerCase().includes(q) ||
     (s.email || '').toLowerCase().includes(q) ||
     (s.associate_code || '').toLowerCase().includes(q))
@@ -316,35 +345,38 @@ function exportCatalogJSON() {
   document.body.removeChild(link);
 }
 
-function adminGiftFreeMonth(userId) {
+async function adminGiftFreeMonth(userId) {
   const state = StockiStore.getState();
   const seller = state.sellers.find(s => s.id === userId);
   if (!seller) return;
 
   seller.trial_days_added = (seller.trial_days_added || 0) + 30;
   StockiStore.saveLocal();
+  await StockiStore.syncCloudDB();
   showToast(`🎁 ¡Se regalaron +30 días gratis a ${seller.full_name}!`, 'success');
   renderAdminMetricsAndUsers();
 }
 
-function adminApplyDiscount(userId) {
+async function adminApplyDiscount(userId) {
   const state = StockiStore.getState();
   const seller = state.sellers.find(s => s.id === userId);
   if (!seller) return;
 
   seller.discount_applied = !seller.discount_applied;
   StockiStore.saveLocal();
+  await StockiStore.syncCloudDB();
   showToast(`🎟️ Descuento del 50% para el siguiente mes ${seller.discount_applied ? 'aplicado' : 'removido'} a ${seller.full_name}.`, 'info');
   renderAdminMetricsAndUsers();
 }
 
-function adminToggleSub(userId) {
+async function adminToggleSub(userId) {
   const state = StockiStore.getState();
   const seller = state.sellers.find(s => s.id === userId);
   if (!seller) return;
 
   seller.is_subscribed = !seller.is_subscribed;
   StockiStore.saveLocal();
+  await StockiStore.syncCloudDB();
   showToast(`💳 Suscripción de ${seller.full_name} ${seller.is_subscribed ? 'activada' : 'desactivada'}.`, 'success');
   renderAdminMetricsAndUsers();
 }
@@ -355,6 +387,7 @@ function adminDeleteUser(userId) {
     state.sellers = state.sellers.filter(s => s.id !== userId);
     state.inventory = state.inventory.filter(i => i.seller_id !== userId);
     StockiStore.saveLocal();
+    await StockiStore.syncCloudDB();
 
     showToast('Usuario y tienda eliminados del sistema.', 'info');
     renderAdminMetricsAndUsers();
@@ -450,7 +483,7 @@ function setNativeTheme(mode) {
 
 async function initApp() {
   await StockiStore.checkActiveSession();
-  await StockiStore.fetchRealDataFromSupabase();
+  await StockiStore.syncCloudDB();
 
   const isSuper = StockiStore.isSuperAdmin();
   const superAdminView = document.getElementById('superAdminView');
@@ -566,7 +599,7 @@ async function handleCPLookup(val) {
 
   box.style.display = 'block';
 
-  // Instant synchronous lookup (< 1ms)
+  // Real SEPOMEX API Lookup
   const res = await StockiCPLookup.lookup(cleanCP);
   if (res.valid) {
     document.getElementById('regEstado').value = res.estado;
@@ -670,6 +703,7 @@ async function handleNativeMercadoPagoPayment(e) {
   if (state.currentUser) {
     state.currentUser.is_subscribed = true;
     StockiStore.saveLocal();
+    await StockiStore.syncCloudDB();
   }
 
   setTimeout(() => {
@@ -1172,6 +1206,7 @@ function handleCreateAlert(e) {
     created_at: 'Hace un momento'
   });
   StockiStore.saveLocal();
+  StockiStore.syncCloudDB();
 
   showToast(`Alerta publicada para el SKU ${sku}.`, 'success');
   closeModal('newAlertModal');

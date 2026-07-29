@@ -14,8 +14,8 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-  <!-- CSS Stylesheets (Cache Busted v=2) -->
-  <link rel="stylesheet" href="css/styles.css?v=2">
+  <!-- CSS Stylesheets (Cache Busted v=3) -->
+  <link rel="stylesheet" href="css/styles.css?v=3">
   
   <!-- Supabase JS Client & Mercado Pago SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -67,6 +67,19 @@
 
       <!-- SECTION 1: DASHBOARD & USUARIAS -->
       <section id="adminSecDashboard">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <div>
+            <h2 style="color: white; font-size: 20px; font-weight: 800;">Panel de Control Ejecutivo de Usuarias</h2>
+            <p style="font-size: 12px; color: #94A3B8;">Gestiona suscripciones, regalos de meses gratis y vendedoras registradas en la nube.</p>
+          </div>
+
+          <div style="display: flex; gap: 10px;">
+            <button class="btn-primary" style="width: auto; background: linear-gradient(135deg, #4F46E5 0%, #3730A3 100%); font-size: 13px;" onclick="handleAdminSyncCloud()">🔄 Sincronizar Usuarias en Vivo (Cloud Database)</button>
+            <button class="btn-secondary" style="width: auto; padding: 10px 14px; font-size: 13px;" onclick="openAdminNewUserModal()">+ Registrar Vendedora Manualmente</button>
+          </div>
+        </div>
+
         <div id="superAdminMetricsContainer">
           <!-- Rendered dynamically -->
         </div>
@@ -388,6 +401,47 @@
   </div>
 
   <!-- MODALS -->
+
+  <!-- Modal: SUPERADMIN MANUAL USER REGISTRATION -->
+  <div id="adminNewUserModal" class="modal-overlay" onclick="closeModalOnOverlay(event, 'adminNewUserModal')">
+    <div class="modal-card" style="background: #1E293B; color: white;">
+      <div class="modal-handle"></div>
+      <div class="modal-header" style="border-bottom-color: rgba(255,255,255,0.1);">
+        <h3 style="color: white;">➕ Registrar Vendedora Manualmente</h3>
+        <button class="modal-close" style="background: rgba(255,255,255,0.1); color: white;" onclick="closeModal('adminNewUserModal')">✕</button>
+      </div>
+
+      <form onsubmit="handleAdminRegisterUser(event)">
+        <div class="form-group">
+          <label class="form-label" style="color: #94A3B8;">Nombre Completo *</label>
+          <input type="text" id="adminRegName" class="input-control" style="background: #0F172A; color: white; border-color: rgba(255,255,255,0.15);" placeholder="Ej. Carmen López" required>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div class="form-group">
+            <label class="form-label" style="color: #94A3B8;">Código Asociada *</label>
+            <input type="text" id="adminRegCode" class="input-control" style="background: #0F172A; color: white; border-color: rgba(255,255,255,0.15);" placeholder="Ej. 123456" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" style="color: #94A3B8;">Teléfono *</label>
+            <input type="tel" id="adminRegPhone" class="input-control" style="background: #0F172A; color: white; border-color: rgba(255,255,255,0.15);" placeholder="9211234567" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" style="color: #94A3B8;">Correo Electrónico *</label>
+          <input type="email" id="adminRegEmail" class="input-control" style="background: #0F172A; color: white; border-color: rgba(255,255,255,0.15);" placeholder="vendedora@gmail.com" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" style="color: #94A3B8;">Colonia / Ubicación *</label>
+          <input type="text" id="adminRegColonia" class="input-control" style="background: #0F172A; color: white; border-color: rgba(255,255,255,0.15);" placeholder="Col. Centro, Coatzacoalcos" required>
+        </div>
+
+        <button type="submit" class="btn-primary" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%);">🚀 Dar de Alta Vendedora en la Nube</button>
+      </form>
+    </div>
+  </div>
 
   <!-- Modal: EDIT / ADD CATALOG SKU (SuperAdmin Only) -->
   <div id="editSkuModal" class="modal-overlay" onclick="closeModalOnOverlay(event, 'editSkuModal')">
@@ -726,10 +780,10 @@
     </div>
   </div>
 
-  <!-- JavaScript Modules (Cache Busted v=2) -->
-  <script src="js/catalog_data.js?v=2"></script>
-  <script src="js/store.js?v=2"></script>
-  <script src="js/cp_lookup.js?v=2"></script>
-  <script src="js/app.js?v=2"></script>
+  <!-- JavaScript Modules (Cache Busted v=3) -->
+  <script src="js/catalog_data.js?v=3"></script>
+  <script src="js/store.js?v=3"></script>
+  <script src="js/cp_lookup.js?v=3"></script>
+  <script src="js/app.js?v=3"></script>
 </body>
 </html>
