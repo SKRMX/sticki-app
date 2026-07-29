@@ -58,7 +58,7 @@ body {
   display: flex;
   flex-direction: column;
   overflow-x: hidden;
-  padding-bottom: 75px;
+  padding-bottom: calc(95px + env(safe-area-inset-bottom));
 }
 
 /* Typography Headings */
@@ -629,7 +629,10 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--text-muted);
 }
 
-/* Bottom Navigation Bar */
+/* ==========================================================================
+   📱 BOTTOM NAVIGATION BAR - SAFE AREA & MOBILE SAFARI ADAPTATION
+   ========================================================================== */
+
 .bottom-nav {
   position: fixed;
   bottom: 0;
@@ -637,15 +640,20 @@ h1, h2, h3, h4, h5, h6 {
   transform: translateX(-50%);
   width: 100%;
   max-width: 500px;
-  height: 68px;
-  background: rgba(255, 255, 255, 0.95);
+  height: calc(75px + env(safe-area-inset-bottom));
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  padding-top: 6px;
+  background: rgba(255, 255, 255, 0.98);
   backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
   border-top: 1px solid var(--border-color);
   display: flex;
   align-items: center;
   justify-content: space-around;
   z-index: 900;
-  padding: 0 8px;
+  padding-left: 8px;
+  padding-right: 8px;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06);
 }
 
 .nav-item {
@@ -653,11 +661,11 @@ h1, h2, h3, h4, h5, h6 {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
+  gap: 2px;
   color: var(--text-muted);
   text-decoration: none;
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 10px;
+  font-weight: 700;
   background: none;
   border: none;
   cursor: pointer;
@@ -729,6 +737,41 @@ h1, h2, h3, h4, h5, h6 {
 .pill-primary { background: var(--primary-light); color: var(--primary); }
 .pill-accent { background: var(--accent-light); color: var(--accent); }
 .pill-warning { background: var(--warning-light); color: var(--warning); }
+
+/* ==========================================================================
+   📲 AUTOMATIC PWA INSTALLATION BANNER SYSTEM
+   ========================================================================== */
+
+#pwaInstallBanner {
+  position: fixed;
+  bottom: calc(82px + env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  width: 92%;
+  max-width: 460px;
+  z-index: 950;
+  background: linear-gradient(135deg, #1E1B4B 0%, #312E81 100%);
+  color: white;
+  padding: 12px 16px;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.2);
+  display: none;
+  animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pwa-banner-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pwa-banner-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  object-fit: cover;
+}
 
 /* ==========================================================================
    🍞 NATIVE TOAST NOTIFICATIONS SYSTEM
@@ -823,7 +866,6 @@ body.os-ios .bottom-nav {
   -webkit-backdrop-filter: blur(35px) saturate(210%);
   border-top: 1px solid rgba(255, 255, 255, 0.8);
   box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.9), 0 -10px 30px rgba(0, 0, 0, 0.05);
-  height: 74px;
 }
 
 body.os-ios .nav-item.active { color: #007AFF; }
@@ -874,7 +916,7 @@ body.os-android {
 body.os-android .app-container { background: #FEF7FF; }
 body.os-android .top-header { background: #F3EDF7; border-bottom: 1px solid #E7E0EC; }
 body.os-android .card { border-radius: 16px; border: 1px solid #E7E0EC; background: #FFFFFF; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
-body.os-android .bottom-nav { background: #F3EDF7; border-top: 1px solid #E7E0EC; height: 72px; }
+body.os-android .bottom-nav { background: #F3EDF7; border-top: 1px solid #E7E0EC; }
 body.os-android .nav-item.active { color: #1D192B; }
 body.os-android .nav-item.active svg { stroke: #6750A4; background: #E8DEF8; padding: 2px 14px; border-radius: 16px; }
 body.os-android .btn-primary { background: #6750A4; border-radius: 24px; font-weight: 600; }

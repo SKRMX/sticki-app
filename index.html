@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>MyStocki (mystocki.com) - Red Social de Inventario Betterware</title>
   <meta name="description" content="MyStocki (mystocki.com) - Marketplace y red social colaborativa para vendedoras de Betterware. Traspasos de stock, tiendas digitales por perfil y entregas locales inmediatas.">
   
@@ -10,6 +10,9 @@
   <link rel="icon" type="image/png" href="assets/icon.png">
   <link rel="apple-touch-icon" href="assets/icon.png">
   <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#4F46E5">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
   <!-- CSS Stylesheets -->
   <link rel="stylesheet" href="css/styles.css">
@@ -22,6 +25,19 @@
 
   <!-- Native Toast Floating Container -->
   <div id="toastContainer"></div>
+
+  <!-- AUTOMATIC PWA INSTALLATION BANNER -->
+  <div id="pwaInstallBanner">
+    <div class="pwa-banner-content">
+      <img src="assets/icon.png" alt="MyStocki App" class="pwa-banner-icon">
+      <div style="flex: 1;">
+        <div style="font-size: 13px; font-weight: 800;">📲 Instalar App MyStocki</div>
+        <div style="font-size: 11px; color: #C7D2FE; id='pwaBannerDesc'">Añade acceso directo a tu pantalla de inicio.</div>
+      </div>
+      <button id="btnPwaInstallAction" class="btn-primary" style="width: auto; padding: 6px 12px; font-size: 11px; background: #10B981;" onclick="triggerPwaInstall()">Instalar</button>
+      <button style="background: transparent; border: none; color: #94A3B8; font-size: 16px; margin-left: 4px; cursor: pointer;" onclick="closePwaBanner()">✕</button>
+    </div>
+  </div>
 
   <!-- DEDICATED SUPERADMIN COMMAND CENTER (Visible ONLY to jmcv2212@gmail.com) -->
   <div id="superAdminView" style="display: none; min-height: 100vh; background: #0F172A; color: white;">
@@ -341,7 +357,7 @@
 
     </main>
 
-    <!-- Bottom Navigation Bar (Mobile Native Look) -->
+    <!-- Bottom Navigation Bar (Mobile Native Look with Safe Area Pad) -->
     <nav class="bottom-nav">
       <button class="nav-item active" onclick="switchTab('tab-search')">
         <svg viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
