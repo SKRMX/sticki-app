@@ -6,8 +6,10 @@
   <title>MyStocki (mystocki.com) - Red Social de Inventario Betterware</title>
   <meta name="description" content="MyStocki (mystocki.com) - Marketplace y red social colaborativa para vendedoras de Betterware. Traspasos de stock, tiendas digitales por perfil y entregas locales inmediatas.">
   
-  <!-- SVG Favicon -->
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='25' fill='%234F46E5'/><text x='50%' y='68%' font-size='65' font-weight='900' fill='white' font-family='sans-serif' text-anchor='middle'>M</text></svg>">
+  <!-- Official App Favicon & Apple Touch Icons -->
+  <link rel="icon" type="image/png" href="assets/icon.png">
+  <link rel="apple-touch-icon" href="assets/icon.png">
+  <link rel="manifest" href="manifest.json">
 
   <!-- CSS Stylesheets -->
   <link rel="stylesheet" href="css/styles.css">
@@ -25,18 +27,15 @@
   <div id="superAdminView" style="display: none; min-height: 100vh; background: #0F172A; color: white;">
     
     <!-- SuperAdmin Header -->
-    <header style="background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.1); padding: 14px 20px; position: sticky; top: 0; z-index: 1000; display: flex; align-items: center; justify-content: space-between;">
-      <div style="display: flex; align-items: center; gap: 12px;">
-        <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 900; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);">👑</div>
-        <div>
-          <div style="font-size: 18px; font-weight: 900; color: white; letter-spacing: -0.02em;">MyStocki Executive Center</div>
-          <div style="font-size: 11px; color: #FCD34D; font-weight: 700;">SuperAdministrador: jmcv2212@gmail.com</div>
-        </div>
+    <header style="background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.1); padding: 12px 20px; position: sticky; top: 0; z-index: 1000; display: flex; align-items: center; justify-content: space-between;">
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <img src="assets/logo.png" alt="MyStocki" style="height: 38px; object-fit: contain; filter: brightness(0) invert(1);">
+        <span class="pill pill-warning" style="font-size: 11px;">EXECUTIVE CENTER</span>
       </div>
 
       <div style="display: flex; align-items: center; gap: 10px;">
-        <span class="pill pill-warning" style="font-size: 11px;">PRODUCCIÓN V5.0</span>
-        <button class="btn-outline" style="color: #EF4444; border-color: rgba(239, 68, 68, 0.4); padding: 6px 12px; font-size: 12px; font-weight: 700;" onclick="handleLogout()">🔒 Cerrar Sesión SuperAdmin</button>
+        <span style="font-size: 11px; color: #FCD34D; font-weight: 700;">SuperAdministrador: jmcv2212@gmail.com</span>
+        <button class="btn-outline" style="color: #EF4444; border-color: rgba(239, 68, 68, 0.4); padding: 6px 12px; font-size: 12px; font-weight: 700;" onclick="handleLogout()">🔒 Cerrar Sesión</button>
       </div>
     </header>
 
@@ -118,14 +117,10 @@
   <!-- REGULAR MOBILE VENDEDORA CONTAINER APP (For all normal users) -->
   <div class="app-container" id="regularUserApp">
     
-    <!-- Top Header -->
+    <!-- Top Header with Official Logo Image -->
     <header class="top-header">
-      <a href="#" class="brand-logo" onclick="switchTab('tab-search'); return false;">
-        <div class="brand-icon">M</div>
-        <div>
-          <div class="brand-name">MyStocki</div>
-          <span class="brand-badge">Betterware</span>
-        </div>
+      <a href="#" style="text-decoration: none;" onclick="switchTab('tab-search'); return false;">
+        <img src="assets/logo.png" alt="MyStocki Betterware" class="brand-logo-img">
       </a>
       
       <!-- How it Works Button + Native OS Theme Switcher + Auth Widget -->
@@ -181,7 +176,7 @@
             <button class="chip-btn" data-cat="Cocina" onclick="filterCategory(this, 'Cocina')">Cocina</button>
             <button class="chip-btn" data-cat="Hogar" onclick="filterCategory(this, 'Hogar')">Hogar</button>
             <button class="chip-btn" data-cat="Contigo" onclick="filterCategory(this, 'Contigo')">Contigo</button>
-            <button class="chip-btn" data-cat="Recamara" onclick="filterCategory(this, 'Recamara')">Recámara</button>
+            <button class="chip-btn" data-cat="Recamara" onclick="filterCategory(this, 'Recámara')">Recámara</button>
             <button class="chip-btn" data-cat="Limpieza" onclick="filterCategory(this, 'Limpieza')">Limpieza</button>
             <button class="chip-btn" data-cat="Baño" onclick="filterCategory(this, 'Baño')">Baño</button>
             <button class="chip-btn" data-cat="Bienestar" onclick="filterCategory(this, 'Bienestar')">Bienestar</button>
