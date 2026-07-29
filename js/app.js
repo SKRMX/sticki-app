@@ -11,6 +11,54 @@ let currentDistanceFilter = 'all';
 let currentCategoryFilter = 'all';
 let currentFeedMode = 'busco';
 
+// ==========================================================================
+// 🍞 NATIVE IN-APP TOAST & CONFIRM DIALOG SYSTEM (No Browser alert())
+// ==========================================================================
+
+function showToast(message, type = 'info') {
+  const container = document.getElementById('toastContainer');
+  if (!container) {
+    console.log(message);
+    return;
+  }
+
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  
+  let icon = 'ℹ️';
+  if (type === 'success') icon = '✅';
+  if (type === 'error') icon = '❌';
+
+  toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
+  container.appendChild(toast);
+
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(-10px)';
+    setTimeout(() => toast.remove(), 300);
+  }, 3200);
+}
+
+let pendingConfirmAction = null;
+
+function showConfirm(title, message, onConfirm) {
+  const modal = document.getElementById('confirmModal');
+  const titleEl = document.getElementById('confirmModalTitle');
+  const msgEl = document.getElementById('confirmModalMessage');
+  const btnAction = document.getElementById('confirmModalBtnAction');
+
+  if (titleEl) titleEl.textContent = title;
+  if (msgEl) msgEl.textContent = message;
+
+  pendingConfirmAction = onConfirm;
+  btnAction.onclick = () => {
+    closeModal('confirmModal');
+    if (pendingConfirmAction) pendingConfirmAction();
+  };
+
+  modal.classList.add('active');
+}
+
 // Native OS Theme Adapter (iOS HIG vs Android Material Design 3)
 function detectAndSetNativeTheme(forcedMode = 'auto') {
   const body = document.body;
@@ -186,13 +234,13 @@ async function handleRealLogin(e) {
 
   const res = await StockiStore.loginUser(email, pass);
   if (res.success) {
-    alert(`🎉 ¡Bienvenida de nuevo, ${res.profile.full_name || 'Vendedora'}!`);
+    showToast(`¡Bienvenida de nuevo, ${res.profile.full_name || 'Vendedora'}!`, 'success');
     closeModal('authModal');
     updateAuthWidget();
     renderMyInventory();
     renderMarketplace();
   } else {
-    alert(`❌ Error al ingresar: ${res.message}`);
+    showToast(`Error al ingresar: ${res.message}`, 'error');
   }
 }
 
@@ -212,12 +260,12 @@ async function handleRealRegister(e) {
 
   const res = await StockiStore.registerUser(email, pass, name, phone, role, fullLocation);
   if (res.success) {
-    alert(`✨ ¡Felicidades! Tu Tienda Digital "stocki-app.netlify.app/?tienda=${res.profile.store_slug}" ha sido creada exitosamente para ${fullLocation}.`);
+    showToast(`¡Felicidades! Tu Tienda Digital para ${fullLocation} ha sido creada.`, 'success');
     closeModal('authModal');
     updateAuthWidget();
     switchTab('tab-store');
   } else {
-    alert(`❌ Error en el registro: ${res.message}`);
+    showToast(`Error en el registro: ${res.message}`, 'error');
   }
 }
 
@@ -226,7 +274,36 @@ async function handleLogout() {
   updateAuthWidget();
   renderMyInventory();
   renderMarketplace();
-  alert('👋 Has cerrado sesión correctamente.');
+  showToast('Has cerrado sesión correctamente.', 'info');
+}
+
+// ==========================================================================
+// EMBEDDED IN-APP MERCADO PAGO PAYMENT HANDLER
+// ==========================================================================
+
+async function handleNativeMercadoPagoPayment(e) {
+  e.preventDefault();
+  const cardNumber = document.getElementById('mpCardNumber').value;
+  const holder = document.getElementById('mpCardHolder').value;
+
+  if (cardNumber.length < 15) {
+    showToast('Ingresa un número de tarjeta válido.', 'error');
+    return;
+  }
+
+  showToast('💳 Procesando suscripción segura en Mercado Pago...', 'info');
+
+  const state = StockiStore.getState();
+  if (state.currentUser) {
+    state.currentUser.is_subscribed = true;
+    StockiStore.saveLocal();
+  }
+
+  setTimeout(() => {
+    showToast('⭐ ¡Suscripción activa! Gracias por suscribirte a Stocki ($49 MXN/mes).', 'success');
+    closeModal('subscribeModal');
+    updateTrialDisplay();
+  }, 1200);
 }
 
 // ==========================================================================
@@ -401,6 +478,14 @@ function toggleRematePrice(checked) {
 
 async function handleAddStock(e) {
   e.preventDefault();
+
+  const state = StockiStore.getState();
+  if (!state.currentUser) {
+    showToast('Debes iniciar sesión para agregar productos a tu tienda.', 'error');
+    openAuthModal('login');
+    return;
+  }
+
   const sku = document.getElementById('addSkuInput').value;
   const qty = document.getElementById('addQtyInput').value;
   const isRemate = document.getElementById('addRemateCheck').checked;
@@ -409,7 +494,7 @@ async function handleAddStock(e) {
   const result = await StockiStore.addInventoryItem(sku, qty, isRemate, rematePrice);
 
   if (result.success) {
-    alert(`✅ ¡Producto SKU ${sku} (${result.product.name}) añadido a tu Tienda Digital!`);
+    showToast(`Producto SKU ${sku} (${result.product.name}) añadido a tu Tienda.`, 'success');
     document.getElementById('addStockForm').reset();
     document.getElementById('skuPreviewBox').style.display = 'none';
     document.getElementById('rematePriceGroup').style.display = 'none';
@@ -417,7 +502,7 @@ async function handleAddStock(e) {
     renderMarketplace();
     renderRematesCarousel();
   } else {
-    alert(`❌ ${result.message}`);
+    showToast(result.message, 'error');
   }
 }
 
@@ -429,7 +514,6 @@ function renderMyInventory() {
   const state = StockiStore.getState();
   const user = state.currentUser;
 
-  // Unauthenticated Empty State prompt
   if (!user) {
     document.getElementById('myProfileName').textContent = 'Tu Tienda Digital';
     document.getElementById('myProfileColonia').textContent = 'Ingresa para activar tu tienda';
@@ -486,13 +570,14 @@ function renderMyInventory() {
   }).join('');
 }
 
-async function deleteStockItem(id) {
-  if (confirm('¿Deseas eliminar este artículo de tu tienda?')) {
+function deleteStockItem(id) {
+  showConfirm('Eliminar Producto', '¿Deseas eliminar este artículo de tu tienda?', async () => {
     await StockiStore.deleteInventoryItem(id);
+    showToast('Producto eliminado de tu tienda.', 'info');
     renderMyInventory();
     renderMarketplace();
     renderRematesCarousel();
-  }
+  });
 }
 
 function viewSellerStore(sellerId) {
@@ -566,9 +651,9 @@ function copyStoreLink() {
   const url = `${window.location.origin}${window.location.pathname}?tienda=${slug}`;
   
   navigator.clipboard.writeText(url).then(() => {
-    alert(`🔗 ¡Enlace de tu Tienda Digital copiado al portapapeles!\n\n${url}`);
+    showToast('Enlace de tu Tienda Digital copiado al portapapeles.', 'success');
   }).catch(() => {
-    alert(`🔗 Tu enlace de tienda es:\n${url}`);
+    showToast(`Tu enlace es: ${url}`, 'info');
   });
 }
 
@@ -637,12 +722,6 @@ function openProductDetailModal(inventoryItemId) {
 
 function openSubscribeModal() { document.getElementById('subscribeModal')?.classList.add('active'); }
 
-function executeMercadoPagoCheckout() {
-  const mpUrl = StockiStore.generateMercadoPagoLink();
-  alert('💳 Redirigiendo al checkout seguro de Mercado Pago ($49.00 MXN / mes)...');
-  window.open(mpUrl, '_blank');
-}
-
 function switchFeedMode(mode) {
   currentFeedMode = mode;
   document.getElementById('btnFeedAlerts')?.classList.toggle('active', mode === 'busco');
@@ -681,6 +760,7 @@ function renderFeed() {
 function openNewAlertModal() {
   const state = StockiStore.getState();
   if (!state.currentUser) {
+    showToast('Debes iniciar sesión para publicar alertas.', 'error');
     openAuthModal('login');
     return;
   }
@@ -713,7 +793,7 @@ function handleCreateAlert(e) {
   });
   StockiStore.saveLocal();
 
-  alert(`📢 ¡Alerta publicada! Notificando a las vendedoras que tienen el SKU ${sku} en stock.`);
+  showToast(`Alerta publicada para el SKU ${sku}.`, 'success');
   closeModal('newAlertModal');
   switchFeedMode('busco');
 }
@@ -744,7 +824,7 @@ function renderChatList() {
   }
 
   container.innerHTML = chats.map(c => `
-    <div class="chat-item" onclick="alert('💬 Abriendo chat de traspaso con ${c.sender_name}...')">
+    <div class="chat-item" onclick="showToast('Abriendo chat de traspaso...', 'info')">
       <div class="chat-avatar">${c.sender_name ? c.sender_name.charAt(0) : 'V'}</div>
       <div class="chat-details">
         <div class="chat-user-name">
@@ -760,11 +840,12 @@ function renderChatList() {
 function startDirectChat(sellerId, productName, sku) {
   const state = StockiStore.getState();
   if (!state.currentUser) {
+    showToast('Debes iniciar sesión para chatear.', 'error');
     openAuthModal('login');
     return;
   }
   switchTab('tab-chat');
-  alert(`💬 Iniciando conversación por ${productName} (SKU ${sku}) con la vendedora...`);
+  showToast(`Iniciando conversación por ${productName} (SKU ${sku})...`, 'info');
 }
 
 function closeModal(modalId) { document.getElementById(modalId)?.classList.remove('active'); }

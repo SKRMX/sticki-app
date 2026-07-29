@@ -760,6 +760,60 @@ h1, h2, h3, h4, h5, h6 {
 
 
 /* ==========================================================================
+   🍞 NATIVE TOAST NOTIFICATIONS SYSTEM
+   ========================================================================== */
+
+#toastContainer {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 460px;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 16px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #0F172A;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(25px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.9), 0 10px 25px rgba(0, 0, 0, 0.12);
+  animation: toastIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: var(--transition);
+}
+
+.toast.toast-error {
+  border-left: 4px solid var(--danger);
+}
+
+.toast.toast-success {
+  border-left: 4px solid var(--accent);
+}
+
+.toast.toast-info {
+  border-left: 4px solid var(--secondary);
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(-20px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+
+/* ==========================================================================
    🍏 iOS 18/26 LIQUID GLASS DESIGN SYSTEM (Futuristic Glassmorphism)
    ========================================================================== */
 
@@ -776,7 +830,6 @@ body.os-ios .app-container {
   box-shadow: 0 0 50px rgba(79, 70, 229, 0.12);
 }
 
-/* Liquid Glass Top Header */
 body.os-ios .top-header {
   background: rgba(255, 255, 255, 0.65);
   backdrop-filter: blur(30px) saturate(200%);
@@ -785,7 +838,6 @@ body.os-ios .top-header {
   box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.4), 0 4px 20px rgba(0, 0, 0, 0.03);
 }
 
-/* Specular Reflection Liquid Glass Cards */
 body.os-ios .card {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0.5) 100%);
   backdrop-filter: blur(25px) saturate(190%);
@@ -795,7 +847,6 @@ body.os-ios .card {
   box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.9), 0 8px 24px rgba(31, 38, 135, 0.06);
 }
 
-/* Liquid Glass Product Cards */
 body.os-ios .product-card {
   border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.8);
@@ -804,7 +855,6 @@ body.os-ios .product-card {
   box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.9), 0 6px 16px rgba(0, 0, 0, 0.05);
 }
 
-/* Liquid Glass Floating Bottom Navigation */
 body.os-ios .bottom-nav {
   background: rgba(255, 255, 255, 0.68);
   backdrop-filter: blur(35px) saturate(210%);
@@ -823,7 +873,6 @@ body.os-ios .nav-item.active svg {
   filter: drop-shadow(0 2px 6px rgba(0, 122, 255, 0.4));
 }
 
-/* Liquid Glass Primary Button */
 body.os-ios .btn-primary {
   background: linear-gradient(135deg, #007AFF 0%, #0056B3 100%);
   border-radius: 16px;
@@ -832,7 +881,6 @@ body.os-ios .btn-primary {
   border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
-/* Liquid Glass Modal Sheet */
 body.os-ios .modal-card {
   background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(40px) saturate(220%);
