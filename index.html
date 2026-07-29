@@ -21,8 +21,102 @@
   <!-- Native Toast Floating Container -->
   <div id="toastContainer"></div>
 
-  <!-- Mobile App Outer Container -->
-  <div class="app-container">
+  <!-- DEDICATED SUPERADMIN COMMAND CENTER (Visible ONLY to jmcv2212@gmail.com) -->
+  <div id="superAdminView" style="display: none; min-height: 100vh; background: #0F172A; color: white;">
+    
+    <!-- SuperAdmin Header -->
+    <header style="background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.1); padding: 14px 20px; position: sticky; top: 0; z-index: 1000; display: flex; align-items: center; justify-content: space-between;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 900; box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);">👑</div>
+        <div>
+          <div style="font-size: 18px; font-weight: 900; color: white; letter-spacing: -0.02em;">MyStocki Executive Center</div>
+          <div style="font-size: 11px; color: #FCD34D; font-weight: 700;">SuperAdministrador: jmcv2212@gmail.com</div>
+        </div>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <span class="pill pill-warning" style="font-size: 11px;">PRODUCCIÓN V5.0</span>
+        <button class="btn-outline" style="color: #EF4444; border-color: rgba(239, 68, 68, 0.4); padding: 6px 12px; font-size: 12px; font-weight: 700;" onclick="handleLogout()">🔒 Cerrar Sesión SuperAdmin</button>
+      </div>
+    </header>
+
+    <!-- SuperAdmin Navigation Bar -->
+    <div style="background: #1E293B; border-bottom: 1px solid rgba(255,255,255,0.08); padding: 0 20px; display: flex; gap: 16px;">
+      <button class="chip-btn active" id="btnAdminTabDashboard" style="border-radius: 0; background: transparent; border: none; border-bottom: 3px solid #F59E0B; color: white; padding: 12px 16px; font-weight: 800;" onclick="switchAdminTab('dashboard')">📊 Métricas & Usuarias</button>
+      <button class="chip-btn" id="btnAdminTabCatalog" style="border-radius: 0; background: transparent; border: none; border-bottom: 3px solid transparent; color: #94A3B8; padding: 12px 16px; font-weight: 700;" onclick="switchAdminTab('catalog')">📚 Gestor de Catálogo Betterware (SKUs)</button>
+      <button class="chip-btn" id="btnAdminTabSystem" style="border-radius: 0; background: transparent; border: none; border-bottom: 3px solid transparent; color: #94A3B8; padding: 12px 16px; font-weight: 700;" onclick="switchAdminTab('system')">⚙️ Configuración & Base de Datos</button>
+    </div>
+
+    <!-- SuperAdmin Main Content Container -->
+    <main style="max-width: 1100px; margin: 0 auto; padding: 24px 16px;">
+
+      <!-- SECTION 1: DASHBOARD & USUARIAS -->
+      <section id="adminSecDashboard">
+        <div id="superAdminMetricsContainer">
+          <!-- Rendered dynamically -->
+        </div>
+
+        <div style="background: #1E293B; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); padding: 20px; margin-top: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h3 style="font-size: 16px; font-weight: 800; color: white;">👥 Gestión de Usuarias y Vendedoras Registradas</h3>
+            <input type="text" class="input-control" style="width: 280px; background: #0F172A; border-color: rgba(255,255,255,0.15); color: white;" placeholder="🔍 Buscar usuaria..." oninput="filterAdminUserTable(this.value)">
+          </div>
+
+          <div id="superAdminUserTableList">
+            <!-- User cards list -->
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 2: GESTOR DE CATÁLOGO (SKUs, Nombres, Precios, Imágenes) -->
+      <section id="adminSecCatalog" style="display: none;">
+        <div style="background: #1E293B; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); padding: 20px;">
+          
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <div>
+              <h3 style="font-size: 18px; font-weight: 800; color: white;">📚 Catálogo Oficial Betterware MyStocki</h3>
+              <p style="font-size: 12px; color: #94A3B8;">Edita SKUs, nombres, precios y fotos oficiales del catálogo global.</p>
+            </div>
+            <button class="btn-primary" style="width: auto; background: linear-gradient(135deg, #10B981 0%, #059669 100%);" onclick="openNewSkuModal()">+ Agregar Nuevo SKU al Catálogo</button>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 16px;">
+            <input type="text" id="adminCatalogSearch" class="input-control" style="background: #0F172A; border-color: rgba(255,255,255,0.15); color: white;" placeholder="🔍 Buscar por SKU o Nombre de producto..." oninput="renderAdminCatalogList(this.value)">
+          </div>
+
+          <div id="adminCatalogList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px;">
+            <!-- Catalog items inserted dynamically -->
+          </div>
+
+        </div>
+      </section>
+
+      <!-- SECTION 3: SYSTEM CONFIG & EXPORT -->
+      <section id="adminSecSystem" style="display: none;">
+        <div style="background: #1E293B; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); padding: 20px;">
+          <h3 style="font-size: 18px; font-weight: 800; color: white; margin-bottom: 14px;">⚙️ Configuración & Respaldos de Sistema</h3>
+          
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+            <div style="background: #0F172A; padding: 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+              <h4 style="color: #FCD34D; font-size: 14px; margin-bottom: 6px;">📥 Exportar Datos de Usuarias (CSV)</h4>
+              <p style="font-size: 12px; color: #94A3B8; margin-bottom: 12px;">Descarga la lista de vendedoras con correo, WhatsApp y código de asociada.</p>
+              <button class="btn-secondary" style="font-size: 12px;" onclick="exportUsersCSV()">Descargar CSV de Usuarias</button>
+            </div>
+
+            <div style="background: #0F172A; padding: 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+              <h4 style="color: #60A5FA; font-size: 14px; margin-bottom: 6px;">📦 Exportar Catálogo JSON</h4>
+              <p style="font-size: 12px; color: #94A3B8; margin-bottom: 12px;">Respalda los SKUs y precios de la base de datos de Betterware.</p>
+              <button class="btn-secondary" style="font-size: 12px;" onclick="exportCatalogJSON()">Descargar JSON Catálogo</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- REGULAR MOBILE VENDEDORA CONTAINER APP (For all normal users) -->
+  <div class="app-container" id="regularUserApp">
     
     <!-- Top Header -->
     <header class="top-header">
@@ -245,8 +339,7 @@
           <div style="border-top: 1px solid var(--border-color); padding-top: 14px; margin-top: 14px;">
             <div style="font-size: 14px; font-weight: 700; margin-bottom: 6px;">Suscripción Mercado Pago</div>
             <div style="font-size: 24px; font-weight: 800; color: var(--primary); margin-bottom: 12px;">$49 MXN <span style="font-size: 14px; font-weight: 500; color: var(--text-muted);">/ mes</span></div>
-            <button class="btn-primary" onclick="openSubscribeModal()" style="margin-bottom: 10px;">💳 Pagar $49 MXN con Mercado Pago</button>
-            <button class="btn-outline" style="width: 100%; font-size: 12px; font-weight: 700; color: var(--primary); border-color: rgba(79, 70, 229, 0.3);" onclick="openAdminDashboard()">👑 Panel SuperAdministrador</button>
+            <button class="btn-primary" onclick="openSubscribeModal()">💳 Pagar $49 MXN con Mercado Pago</button>
           </div>
         </div>
       </section>
@@ -285,20 +378,64 @@
 
   <!-- MODALS -->
 
-  <!-- Modal 0: SUPERADMIN DASHBOARD MODAL -->
-  <div id="adminModal" class="modal-overlay" onclick="closeModalOnOverlay(event, 'adminModal')">
-    <div class="modal-card" style="max-height: 92vh; max-width: 480px;">
+  <!-- Modal: EDIT / ADD CATALOG SKU (SuperAdmin Only) -->
+  <div id="editSkuModal" class="modal-overlay" onclick="closeModalOnOverlay(event, 'editSkuModal')">
+    <div class="modal-card" style="background: #1E293B; color: white;">
       <div class="modal-handle"></div>
-      <div class="modal-header">
-        <h3 style="display: flex; align-items: center; gap: 8px;">
-          <span style="font-size: 20px;">👑</span> Panel SuperAdministrador
-        </h3>
-        <button class="modal-close" onclick="closeModal('adminModal')">✕</button>
+      <div class="modal-header" style="border-bottom-color: rgba(255,255,255,0.1);">
+        <h3 id="editSkuModalTitle" style="color: white;">✏️ Editar Producto en Catálogo</h3>
+        <button class="modal-close" style="background: rgba(255,255,255,0.1); color: white;" onclick="closeModal('editSkuModal')">✕</button>
       </div>
 
-      <div id="adminContent">
-        <!-- Admin Metrics & User Management Table rendered dynamically -->
-      </div>
+      <form onsubmit="handleSaveSkuItem(event)">
+        <input type="hidden" id="editSkuOriginal">
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div class="form-group">
+            <label class="form-label" style="color: #94A3B8;">SKU *</label>
+            <input type="text" id="editSkuInput" class="input-control" style="background: #0F172A; color: white; border-color: rgba(255,255,255,0.15);" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" style="color: #94A3B8;">Categoría *</label>
+            <select id="editCategoryInput" class="input-control" style="background: #0F172A; color: white; border-color: rgba(255,255,255,0.15);" required>
+              <option value="Cocina">Cocina</option>
+              <option value="Hogar">Hogar</option>
+              <option value="Contigo">Contigo</option>
+              <option value="Recamara">Recámara</option>
+              <option value="Limpieza">Limpieza</option>
+              <option value="Baño">Baño</option>
+              <option value="Bienestar">Bienestar</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" style="color: #94A3B8;">Nombre del Producto *</label>
+          <input type="text" id="editNameInput" class="input-control" style="background: #0F172A; color: white; border-color: rgba(255,255,255,0.15);" required>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div class="form-group">
+            <label class="form-label" style="color: #94A3B8;">Precio Catálogo ($) *</label>
+            <input type="number" step="0.01" id="editPriceSaleInput" class="input-control" style="background: #0F172A; color: white; border-color: rgba(255,255,255,0.15);" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" style="color: #94A3B8;">Costo Asociada ($) *</label>
+            <input type="number" step="0.01" id="editPriceAssocInput" class="input-control" style="background: #0F172A; color: white; border-color: rgba(255,255,255,0.15);" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" style="color: #94A3B8;">URL de Imagen Oficial *</label>
+          <input type="url" id="editImageInput" class="input-control" style="background: #0F172A; color: white; border-color: rgba(255,255,255,0.15);" required placeholder="https://..." oninput="document.getElementById('editImgPreview').src=this.value">
+        </div>
+
+        <div style="text-align: center; margin-bottom: 14px;">
+          <img id="editImgPreview" style="max-height: 120px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2);" onerror="this.src='https://via.placeholder.com/150'">
+        </div>
+
+        <button type="submit" class="btn-primary" style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);">💾 Guardar Cambios en Catálogo</button>
+      </form>
     </div>
   </div>
 
@@ -360,7 +497,7 @@
     </div>
   </div>
 
-  <!-- Modal 1: Supabase Real Auth (Login / Register with Mandatory Anti-Abuse Checks) -->
+  <!-- Modal 1: Supabase Real Auth (Login / Register) -->
   <div id="authModal" class="modal-overlay" onclick="closeModalOnOverlay(event, 'authModal')">
     <div class="modal-card">
       <div class="modal-handle"></div>
@@ -387,7 +524,7 @@
         <button type="submit" class="btn-primary">Iniciar Sesión</button>
       </form>
 
-      <!-- Register Form with Mandatory Security Fields & CP Instant Lookup -->
+      <!-- Register Form -->
       <form id="registerForm" style="display: none;" onsubmit="handleRealRegister(event)">
         <div class="form-group">
           <label class="form-label">Nombre Completo *</label>

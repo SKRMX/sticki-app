@@ -12,34 +12,39 @@ let currentCategoryFilter = 'all';
 let currentFeedMode = 'busco';
 
 // ==========================================================================
-// 👑 SUPER ADMIN DASHBOARD CONTROLLER & SECURE CREDENTIALS AUTHORIZATION
+// 👑 EXECUTIVE SUPERADMIN CONTROL CENTER (jmcv2212@gmail.com Exclusivo)
 // ==========================================================================
 
-function openAdminDashboard() {
-  const isSuper = StockiStore.isSuperAdmin();
+function switchAdminTab(tabName) {
+  document.getElementById('adminSecDashboard').style.display = tabName === 'dashboard' ? 'block' : 'none';
+  document.getElementById('adminSecCatalog').style.display = tabName === 'catalog' ? 'block' : 'none';
+  document.getElementById('adminSecSystem').style.display = tabName === 'system' ? 'block' : 'none';
 
-  if (!isSuper) {
-    // Prompt for SuperAdmin Password
-    const inputPass = prompt('🔒 Acceso Privado a SuperAdministrador MyStocki.\n\nIngresa la contraseña de SuperAdmin:');
-    if (inputPass === 'palmera22022800') {
-      showToast('👑 Acceso de SuperAdministrador concedido.', 'success');
-    } else {
-      showToast('❌ Contraseña de SuperAdministrador incorrecta.', 'error');
-      return;
-    }
+  const btnDash = document.getElementById('btnAdminTabDashboard');
+  const btnCat = document.getElementById('btnAdminTabCatalog');
+  const btnSys = document.getElementById('btnAdminTabSystem');
+
+  if (btnDash) {
+    btnDash.style.borderColor = tabName === 'dashboard' ? '#F59E0B' : 'transparent';
+    btnDash.style.color = tabName === 'dashboard' ? '#FFFFFF' : '#94A3B8';
+  }
+  if (btnCat) {
+    btnCat.style.borderColor = tabName === 'catalog' ? '#F59E0B' : 'transparent';
+    btnCat.style.color = tabName === 'catalog' ? '#FFFFFF' : '#94A3B8';
+  }
+  if (btnSys) {
+    btnSys.style.borderColor = tabName === 'system' ? '#F59E0B' : 'transparent';
+    btnSys.style.color = tabName === 'system' ? '#FFFFFF' : '#94A3B8';
   }
 
-  const modal = document.getElementById('adminModal');
-  const container = document.getElementById('adminContent');
-  if (!container) return;
-
-  renderAdminDashboardContent();
-  modal?.classList.add('active');
+  if (tabName === 'catalog') renderAdminCatalogList();
+  if (tabName === 'dashboard') renderAdminMetricsAndUsers();
 }
 
-function renderAdminDashboardContent() {
-  const container = document.getElementById('adminContent');
-  if (!container) return;
+function renderAdminMetricsAndUsers() {
+  const metricsContainer = document.getElementById('superAdminMetricsContainer');
+  const userTableContainer = document.getElementById('superAdminUserTableList');
+  if (!metricsContainer || !userTableContainer) return;
 
   const state = StockiStore.getState();
   const sellers = (state.sellers || []).filter(s => s.email !== StockiStore.SUPER_ADMIN_EMAIL);
@@ -50,46 +55,37 @@ function renderAdminDashboardContent() {
   const totalProducts = inventory.length;
   const totalRevenue = subscribedUsers * 49;
 
-  container.innerHTML = `
-    <!-- Top Metrics Overview Grid -->
-    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px;">
-      <div style="background: linear-gradient(135deg, #1E1B4B 0%, #312E81 100%); color: white; padding: 14px; border-radius: var(--radius-md);">
-        <div style="font-size: 11px; color: #C7D2FE; text-transform: uppercase; font-weight: 700;">Total Usuarias</div>
-        <div style="font-size: 24px; font-weight: 800; color: white;">${totalUsers}</div>
-        <div style="font-size: 10px; color: #94A3B8;">Vendedoras registradas</div>
+  metricsContainer.innerHTML = `
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;">
+      <div style="background: linear-gradient(135deg, #1E1B4B 0%, #312E81 100%); color: white; padding: 18px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.1);">
+        <div style="font-size: 11px; color: #C7D2FE; text-transform: uppercase; font-weight: 800;">Usuarias Registradas</div>
+        <div style="font-size: 32px; font-weight: 900; color: white; margin: 4px 0;">${totalUsers}</div>
+        <div style="font-size: 11px; color: #94A3B8;">Vendedoras activas</div>
       </div>
 
-      <div style="background: linear-gradient(135deg, #065F46 0%, #047857 100%); color: white; padding: 14px; border-radius: var(--radius-md);">
-        <div style="font-size: 11px; color: #A7F3D0; text-transform: uppercase; font-weight: 700;">Pagaron Mensualidad</div>
-        <div style="font-size: 24px; font-weight: 800; color: white;">${subscribedUsers}</div>
-        <div style="font-size: 10px; color: #D1FAE5;">$49/mes Mercado Pago</div>
+      <div style="background: linear-gradient(135deg, #065F46 0%, #047857 100%); color: white; padding: 18px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.1);">
+        <div style="font-size: 11px; color: #A7F3D0; text-transform: uppercase; font-weight: 800;">Pagaron Mensualidad</div>
+        <div style="font-size: 32px; font-weight: 900; color: white; margin: 4px 0;">${subscribedUsers}</div>
+        <div style="font-size: 11px; color: #D1FAE5;">$49/mes Mercado Pago</div>
       </div>
 
-      <div style="background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%); color: white; padding: 14px; border-radius: var(--radius-md);">
-        <div style="font-size: 11px; color: #BAE6FD; text-transform: uppercase; font-weight: 700;">Ingreso Mensual</div>
-        <div style="font-size: 24px; font-weight: 800; color: white;">$${totalRevenue} MXN</div>
-        <div style="font-size: 10px; color: #E0F2FE;">Cobros recurrentes</div>
+      <div style="background: linear-gradient(135deg, #0284C7 0%, #0369A1 100%); color: white; padding: 18px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.1);">
+        <div style="font-size: 11px; color: #BAE6FD; text-transform: uppercase; font-weight: 800;">Ingreso Recurrente</div>
+        <div style="font-size: 32px; font-weight: 900; color: white; margin: 4px 0;">$${totalRevenue} MXN</div>
+        <div style="font-size: 11px; color: #E0F2FE;">Cobros mensuales</div>
       </div>
 
-      <div style="background: linear-gradient(135deg, #4338CA 0%, #3730A3 100%); color: white; padding: 14px; border-radius: var(--radius-md);">
-        <div style="font-size: 11px; color: #C7D2FE; text-transform: uppercase; font-weight: 700;">Artículos en Stock</div>
-        <div style="font-size: 24px; font-weight: 800; color: white;">${totalProducts}</div>
-        <div style="font-size: 10px; color: #E0E7FF;">Inventario publicado</div>
+      <div style="background: linear-gradient(135deg, #4338CA 0%, #3730A3 100%); color: white; padding: 18px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.1);">
+        <div style="font-size: 11px; color: #C7D2FE; text-transform: uppercase; font-weight: 800;">Artículos Publicados</div>
+        <div style="font-size: 32px; font-weight: 900; color: white; margin: 4px 0;">${totalProducts}</div>
+        <div style="font-size: 11px; color: #E0E7FF;">Stock en vivo</div>
       </div>
-    </div>
-
-    <!-- Search Users -->
-    <div class="form-group" style="margin-bottom: 12px;">
-      <input type="text" id="adminUserSearch" class="input-control" placeholder="🔍 Buscar por nombre, correo o código..." oninput="filterAdminUserTable(this.value)">
-    </div>
-
-    <!-- Users Table List -->
-    <h4 style="font-size: 14px; font-weight: 800; margin-bottom: 10px;">Gestión de Cuentas de Vendedoras:</h4>
-    <div id="adminUserList" style="display: flex; flex-direction: column; gap: 10px; max-height: 380px; overflow-y: auto;">
-      ${sellers.length === 0 ? '<p style="font-size: 12px; color: var(--text-muted); text-align: center; padding: 20px;">Aún no hay vendedoras registradas en la plataforma.</p>' : ''}
-      ${sellers.map(s => renderAdminUserRow(s)).join('')}
     </div>
   `;
+
+  userTableContainer.innerHTML = sellers.length === 0 ? 
+    '<p style="font-size: 13px; color: #94A3B8; text-align: center; padding: 30px;">No hay vendedoras registradas en la plataforma por el momento.</p>' :
+    sellers.map(s => renderAdminUserRow(s)).join('');
 }
 
 function renderAdminUserRow(s) {
@@ -97,26 +93,21 @@ function renderAdminUserRow(s) {
   const hasDiscount = s.discount_applied;
 
   return `
-    <div class="card" style="padding: 12px; margin-bottom: 0; background: #FFFFFF; border: 1px solid var(--border-color);" id="admin_row_${s.id}">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
-        <div>
-          <div style="font-size: 14px; font-weight: 800; color: var(--text-main);">${s.full_name || s.name || 'Vendedora'}</div>
-          <div style="font-size: 11px; color: var(--primary); font-weight: 700;">🆔 Código: ${s.associate_code || 'N/A'} • ${s.role || 'Asociada'}</div>
-          <div style="font-size: 11px; color: var(--text-muted);">📧 ${s.email || 'Sin correo'} • 📱 ${s.phone || 'Sin tel'}</div>
-          <div style="font-size: 11px; color: var(--text-muted);">📍 ${s.colonia || 'México'}</div>
-        </div>
-        <div>
-          ${isSub ? '<span class="pill pill-accent">⭐ PAGADO $49</span>' : '<span class="pill pill-warning">⏳ PRUEBA GRATIS</span>'}
-          ${hasDiscount ? '<span class="pill pill-primary" style="display: block; margin-top: 4px;">🎟️ 50% DESC</span>' : ''}
-        </div>
+    <div style="padding: 14px; margin-bottom: 10px; background: #0F172A; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; display: flex; justify-content: space-between; align-items: center;" id="admin_row_${s.id}">
+      <div>
+        <div style="font-size: 15px; font-weight: 800; color: white;">${s.full_name || s.name || 'Vendedora'}</div>
+        <div style="font-size: 12px; color: #F59E0B; font-weight: 700;">🆔 Código: ${s.associate_code || 'N/A'} • ${s.role || 'Asociada'}</div>
+        <div style="font-size: 12px; color: #94A3B8;">📧 ${s.email || 'Sin correo'} • 📱 ${s.phone || 'Sin tel'} • 📍 ${s.colonia || 'México'}</div>
       </div>
 
-      <!-- Action Buttons -->
-      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; border-top: 1px dashed var(--border-color); padding-top: 8px; margin-top: 6px;">
-        <button class="btn-secondary" style="font-size: 10px; padding: 6px;" onclick="adminGiftFreeMonth('${s.id}')">🎁 Regalar 1 Mes Gratis</button>
-        <button class="btn-secondary" style="font-size: 10px; padding: 6px;" onclick="adminApplyDiscount('${s.id}')">🎟️ Dar 50% Descuento</button>
-        <button class="btn-outline" style="font-size: 10px; padding: 6px;" onclick="adminToggleSub('${s.id}')">${isSub ? '❌ Cancelar Pago' : '💳 Activar Pago'}</button>
-        <button class="btn-outline" style="font-size: 10px; padding: 6px; color: var(--danger); border-color: rgba(239, 68, 68, 0.4);" onclick="adminDeleteUser('${s.id}')">🗑️ Borrar Usuario</button>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        ${isSub ? '<span class="pill pill-accent">⭐ PAGADO $49</span>' : '<span class="pill pill-warning">⏳ PRUEBA GRATIS</span>'}
+        ${hasDiscount ? '<span class="pill pill-primary">🎟️ 50% DESC</span>' : ''}
+        
+        <button class="btn-secondary" style="font-size: 11px; padding: 6px 10px;" onclick="adminGiftFreeMonth('${s.id}')">🎁 +30 Días</button>
+        <button class="btn-secondary" style="font-size: 11px; padding: 6px 10px;" onclick="adminApplyDiscount('${s.id}')">🎟️ Descuento</button>
+        <button class="btn-outline" style="font-size: 11px; padding: 6px 10px; color: white; border-color: rgba(255,255,255,0.2);" onclick="adminToggleSub('${s.id}')">${isSub ? '❌ Cancelar' : '💳 Activar'}</button>
+        <button class="btn-outline" style="font-size: 11px; padding: 6px 10px; color: #EF4444; border-color: rgba(239, 68, 68, 0.4);" onclick="adminDeleteUser('${s.id}')">🗑️ Borrar</button>
       </div>
     </div>
   `;
@@ -132,10 +123,133 @@ function filterAdminUserTable(query) {
     (s.associate_code || '').toLowerCase().includes(q))
   );
 
-  const container = document.getElementById('adminUserList');
+  const container = document.getElementById('superAdminUserTableList');
   if (container) {
     container.innerHTML = filtered.map(s => renderAdminUserRow(s)).join('');
   }
+}
+
+// CATALOG EDITOR FOR SUPERADMIN (SKU, Title, Prices, Image URL)
+function renderAdminCatalogList(query = '') {
+  const container = document.getElementById('adminCatalogList');
+  if (!container) return;
+
+  const q = query.toLowerCase().trim();
+  const catalog = window.BW_CATALOG || [];
+  
+  const filtered = catalog.filter(p => 
+    StockiStore.strSKU(p.sku).includes(q) ||
+    p.name.toLowerCase().includes(q) ||
+    p.category.toLowerCase().includes(q)
+  );
+
+  container.innerHTML = filtered.map(p => `
+    <div style="background: #0F172A; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 12px; display: flex; gap: 12px; align-items: center;">
+      <img src="${p.image}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; background: white;" onerror="this.src='https://via.placeholder.com/100'">
+      <div style="flex: 1;">
+        <div style="font-size: 12px; font-weight: 800; color: #F59E0B;">SKU ${p.sku} • ${p.category}</div>
+        <div style="font-size: 13px; font-weight: 700; color: white; line-height: 1.2;">${p.name}</div>
+        <div style="font-size: 11px; color: #94A3B8; margin-top: 4px;">
+          Catálogo: <b style="color: white;">$${p.price_sale.toFixed(2)}</b> | Costo A: <b style="color: #34D399;">$${p.price_assoc.toFixed(2)}</b>
+        </div>
+      </div>
+      <button class="btn-secondary" style="font-size: 11px; padding: 6px 10px;" onclick="openEditSkuModal('${p.sku}')">✏️ Editar</button>
+    </div>
+  `).join('');
+}
+
+function openEditSkuModal(sku) {
+  const found = window.BW_CATALOG.find(p => StockiStore.strSKU(p.sku) === StockiStore.strSKU(sku));
+  if (!found) return;
+
+  document.getElementById('editSkuModalTitle').textContent = `✏️ Editar SKU ${found.sku}`;
+  document.getElementById('editSkuOriginal').value = found.sku;
+  document.getElementById('editSkuInput').value = found.sku;
+  document.getElementById('editCategoryInput').value = found.category || 'Cocina';
+  document.getElementById('editNameInput').value = found.name;
+  document.getElementById('editPriceSaleInput').value = found.price_sale;
+  document.getElementById('editPriceAssocInput').value = found.price_assoc;
+  document.getElementById('editImageInput').value = found.image;
+  document.getElementById('editImgPreview').src = found.image;
+
+  document.getElementById('editSkuModal')?.classList.add('active');
+}
+
+function openNewSkuModal() {
+  document.getElementById('editSkuModalTitle').textContent = `✨ Agregar Nuevo SKU al Catálogo`;
+  document.getElementById('editSkuOriginal').value = '';
+  document.getElementById('editSkuInput').value = '';
+  document.getElementById('editCategoryInput').value = 'Cocina';
+  document.getElementById('editNameInput').value = '';
+  document.getElementById('editPriceSaleInput').value = '';
+  document.getElementById('editPriceAssocInput').value = '';
+  document.getElementById('editImageInput').value = '';
+  document.getElementById('editImgPreview').src = '';
+
+  document.getElementById('editSkuModal')?.classList.add('active');
+}
+
+function handleSaveSkuItem(e) {
+  e.preventDefault();
+  const origSku = document.getElementById('editSkuOriginal').value;
+  const newSku = StockiStore.strSKU(document.getElementById('editSkuInput').value);
+  const category = document.getElementById('editCategoryInput').value;
+  const name = document.getElementById('editNameInput').value;
+  const priceSale = parseFloat(document.getElementById('editPriceSaleInput').value);
+  const priceAssoc = parseFloat(document.getElementById('editPriceAssocInput').value);
+  const image = document.getElementById('editImageInput').value;
+
+  const itemData = {
+    sku: newSku,
+    name,
+    category,
+    price_sale: priceSale,
+    price_assoc: priceAssoc,
+    price_dist: priceAssoc * 0.82,
+    profit: priceSale - priceAssoc,
+    image,
+    description: name + ' - Catálogo Oficial Betterware'
+  };
+
+  if (origSku) {
+    const idx = window.BW_CATALOG.findIndex(p => StockiStore.strSKU(p.sku) === StockiStore.strSKU(origSku));
+    if (idx !== -1) window.BW_CATALOG[idx] = itemData;
+  } else {
+    window.BW_CATALOG.unshift(itemData);
+  }
+
+  showToast(`✅ Producto SKU ${newSku} (${name}) guardado en el catálogo oficial.`, 'success');
+  closeModal('editSkuModal');
+  renderAdminCatalogList();
+  renderMarketplace();
+}
+
+function exportUsersCSV() {
+  const state = StockiStore.getState();
+  const sellers = state.sellers || [];
+  let csv = 'ID,Nombre,Email,Telefono,CodigoAsociada,Rol,Colonia,Suscrito\n';
+  sellers.forEach(s => {
+    csv += `"${s.id}","${s.full_name || ''}","${s.email || ''}","${s.phone || ''}","${s.associate_code || ''}","${s.role || ''}","${s.colonia || ''}","${s.is_subscribed ? 'SI' : 'NO'}"\n`;
+  });
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.setAttribute('download', `mystocki_usuarias_${new Date().toISOString().slice(0,10)}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+function exportCatalogJSON() {
+  const json = JSON.stringify(window.BW_CATALOG || [], null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.setAttribute('download', `mystocki_catalogo_${new Date().toISOString().slice(0,10)}.json`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 
 function adminGiftFreeMonth(userId) {
@@ -146,7 +260,7 @@ function adminGiftFreeMonth(userId) {
   seller.trial_days_added = (seller.trial_days_added || 0) + 30;
   StockiStore.saveLocal();
   showToast(`🎁 ¡Se regalaron +30 días gratis a ${seller.full_name}!`, 'success');
-  renderAdminDashboardContent();
+  renderAdminMetricsAndUsers();
 }
 
 function adminApplyDiscount(userId) {
@@ -157,7 +271,7 @@ function adminApplyDiscount(userId) {
   seller.discount_applied = !seller.discount_applied;
   StockiStore.saveLocal();
   showToast(`🎟️ Descuento del 50% para el siguiente mes ${seller.discount_applied ? 'aplicado' : 'removido'} a ${seller.full_name}.`, 'info');
-  renderAdminDashboardContent();
+  renderAdminMetricsAndUsers();
 }
 
 function adminToggleSub(userId) {
@@ -168,7 +282,7 @@ function adminToggleSub(userId) {
   seller.is_subscribed = !seller.is_subscribed;
   StockiStore.saveLocal();
   showToast(`💳 Suscripción de ${seller.full_name} ${seller.is_subscribed ? 'activada' : 'desactivada'}.`, 'success');
-  renderAdminDashboardContent();
+  renderAdminMetricsAndUsers();
 }
 
 function adminDeleteUser(userId) {
@@ -179,7 +293,7 @@ function adminDeleteUser(userId) {
     StockiStore.saveLocal();
 
     showToast('Usuario y tienda eliminados del sistema.', 'info');
-    renderAdminDashboardContent();
+    renderAdminMetricsAndUsers();
     renderMarketplace();
   });
 }
@@ -274,19 +388,32 @@ async function initApp() {
   await StockiStore.checkActiveSession();
   await StockiStore.fetchRealDataFromSupabase();
 
-  updateAuthWidget();
-  updateTrialDisplay();
-  renderRematesCarousel();
-  renderMarketplace();
-  renderMyInventory();
-  renderFeed();
-  renderChatList();
+  const isSuper = StockiStore.isSuperAdmin();
+  const superAdminView = document.getElementById('superAdminView');
+  const regularUserApp = document.getElementById('regularUserApp');
 
-  const urlParams = new URLSearchParams(window.location.search);
-  const storeSlug = urlParams.get('tienda');
-  if (storeSlug) {
-    const seller = StockiStore.getSellerBySlug(storeSlug);
-    if (seller) viewSellerStore(seller.id);
+  if (isSuper) {
+    if (superAdminView) superAdminView.style.display = 'block';
+    if (regularUserApp) regularUserApp.style.display = 'none';
+    renderAdminMetricsAndUsers();
+  } else {
+    if (superAdminView) superAdminView.style.display = 'none';
+    if (regularUserApp) regularUserApp.style.display = 'flex';
+    
+    updateAuthWidget();
+    updateTrialDisplay();
+    renderRematesCarousel();
+    renderMarketplace();
+    renderMyInventory();
+    renderFeed();
+    renderChatList();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const storeSlug = urlParams.get('tienda');
+    if (storeSlug) {
+      const seller = StockiStore.getSellerBySlug(storeSlug);
+      if (seller) viewSellerStore(seller.id);
+    }
   }
 }
 
@@ -298,10 +425,9 @@ function updateAuthWidget() {
   const user = state.currentUser;
 
   if (user) {
-    const isSuper = StockiStore.isSuperAdmin();
     container.innerHTML = `
       <div style="display: flex; align-items: center; gap: 6px; cursor: pointer;" onclick="switchTab('tab-profile')">
-        <span class="seller-avatar" style="width: 28px; height: 28px; font-weight: 800; background: ${isSuper ? '#F59E0B' : 'var(--primary)'}; color: white;">${isSuper ? '👑' : (user.full_name ? user.full_name.charAt(0) : 'U')}</span>
+        <span class="seller-avatar" style="width: 28px; height: 28px; font-weight: 800;">${user.full_name ? user.full_name.charAt(0) : 'U'}</span>
         <span style="font-size: 12px; font-weight: 700; color: var(--text-main); max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${user.full_name ? user.full_name.split(' ')[0] : 'Cuenta'}</span>
       </div>
       <button class="btn-outline" style="padding: 4px 8px; font-size: 11px;" onclick="handleLogout()">Salir</button>
@@ -417,12 +543,7 @@ async function handleRealLogin(e) {
   if (res.success) {
     showToast(`¡Bienvenida de nuevo, ${res.profile.full_name || 'Vendedora'}!`, 'success');
     closeModal('authModal');
-    updateAuthWidget();
-    renderMyInventory();
-    renderMarketplace();
-    if (StockiStore.isSuperAdmin()) {
-      openAdminDashboard();
-    }
+    await initApp();
   } else {
     showToast(`Error al ingresar: ${res.message}`, 'error');
   }
@@ -452,7 +573,7 @@ async function handleRealRegister(e) {
   if (res.success) {
     showToast(`✨ ¡Felicidades ${name}! Tu Tienda ha sido verificada con Código ${associateCode}. Correo enviado via Resend.`, 'success');
     closeModal('authModal');
-    updateAuthWidget();
+    await initApp();
     switchTab('tab-store');
   } else {
     showToast(`❌ Error: ${res.message}`, 'error');
@@ -461,9 +582,7 @@ async function handleRealRegister(e) {
 
 async function handleLogout() {
   await StockiStore.logoutUser();
-  updateAuthWidget();
-  renderMyInventory();
-  renderMarketplace();
+  await initApp();
   showToast('Has cerrado sesión correctamente.', 'info');
 }
 
