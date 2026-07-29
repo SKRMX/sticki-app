@@ -1118,10 +1118,21 @@ function renderMyInventory() {
   document.getElementById('myProfileColonia').textContent = user.colonia || 'México';
   document.getElementById('myProfileInitials').textContent = (user.full_name || 'V').substring(0, 2).toUpperCase();
 
+  updateTrialDisplay();
+
   const items = state.inventory.filter(i => i.seller_id === user.id);
 
   const statCount = document.getElementById('statItemCount');
-  if (statCount) statCount.textContent = items.reduce((acc, i) => acc + i.qty, 0);
+  const statRating = document.getElementById('statRating');
+  const statTraspasos = document.getElementById('statTraspasos');
+
+  const totalArticles = items.reduce((acc, i) => acc + (parseInt(i.qty, 10) || 0), 0);
+  const userRating = user.rating !== undefined && user.rating !== null ? parseFloat(user.rating).toFixed(1) : '5.0';
+  const totalTraspasos = user.traspasos_count || (state.messages ? state.messages.filter(m => m.seller_id === user.id || m.sender_id === user.id).length : 0);
+
+  if (statCount) statCount.textContent = totalArticles;
+  if (statRating) statRating.textContent = `${userRating} ★`;
+  if (statTraspasos) statTraspasos.textContent = totalTraspasos;
 
   if (items.length === 0) {
     container.innerHTML = `<p style="font-size: 13px; color: var(--text-muted); text-align: center; padding: 20px;">Aún no has cargado ningún producto a tu tienda. ¡Ingresa un SKU arriba para comenzar!</p>`;
