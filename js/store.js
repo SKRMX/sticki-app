@@ -6,8 +6,8 @@
 const SUPABASE_URL = 'https://zvghhfvsydajuiulgkir.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_J7s_lky44EFra28eggDS2A_Z0CKV98n';
 
-// Llave Pública Mercado Pago (puedes reemplazar con tu Public Key de Mercado Pago en producción)
-const MERCADO_PAGO_PUBLIC_KEY = 'APP_USR-f34a5d6c-7e8f-9a0b-1c2d-3e4f5a6b7c8d';
+// Llave Pública Mercado Pago de Producción
+const MERCADO_PAGO_PUBLIC_KEY = 'APP_USR-c9a99b22-e6bf-4c3d-b1d2-ef788313c5c6';
 
 // Inicializador de cliente Supabase
 let supabaseClient = null;
